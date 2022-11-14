@@ -153,6 +153,9 @@
     <ClInclude Include="lib\texture.h">
       <Filter>lib</Filter>
     </ClInclude>
+    <ClInclude Include="lib\texture1.h">
+      <Filter>lib</Filter>
+    </ClInclude>
     <ClInclude Include="lib\texture2.h">
       <Filter>lib</Filter>
     </ClInclude>
@@ -270,6 +273,9 @@
       <Filter>lib</Filter>
     </ClCompile>
     <ClCompile Include="lib\texture.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\texture1.c">
       <Filter>lib</Filter>
     </ClCompile>
     <ClCompile Include="lib\texture2.c">

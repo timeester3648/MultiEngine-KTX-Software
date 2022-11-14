@@ -48,6 +48,8 @@ project "KTX-Software"
 		"./lib/swap.c",
 		"./lib/texture.c",
 		"./lib/texture.h",
+		"./lib/texture1.c",
+		"./lib/texture1.h",
 		"./lib/texture2.c",
 		"./lib/texture2.h",
 		"./lib/uthash.h",

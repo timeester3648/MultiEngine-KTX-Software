@@ -190,6 +190,7 @@
     <ClInclude Include="lib\ktxint.h" />
     <ClInclude Include="lib\memstream.h" />
     <ClInclude Include="lib\texture.h" />
+    <ClInclude Include="lib\texture1.h" />
     <ClInclude Include="lib\texture2.h" />
     <ClInclude Include="lib\uthash.h" />
     <ClInclude Include="lib\vk_format.h" />
@@ -231,6 +232,7 @@
     <ClCompile Include="lib\strings.c" />
     <ClCompile Include="lib\swap.c" />
     <ClCompile Include="lib\texture.c" />
+    <ClCompile Include="lib\texture1.c" />
     <ClCompile Include="lib\texture2.c" />
     <ClCompile Include="lib\vk_funcs.c" />
     <ClCompile Include="lib\vkformat_check.c" />
