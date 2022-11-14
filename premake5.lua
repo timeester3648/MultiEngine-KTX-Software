@@ -112,7 +112,7 @@ project "KTX-Software"
 	filter "options:sse"
 		defines { "__SSE__" }
 	filter "options:sse2"
-		defines { "__SSE2__", "__POPCNT__" }
+		defines { "__SSE2__" }
 	filter "options:sse3"
 		defines { "__SSE3__" }
 	filter "options:ssse3"
@@ -125,6 +125,8 @@ project "KTX-Software"
 		defines { "__AVX__" }
 	filter "options:avx2"
 		defines { "__AVX2__" }
+	filter { "options:popcnt" }
+		defines { "__POPCNT__" }
 	
  	filter "system:windows"
 		disablewarnings { "4244", "4996", "4005", "4267" }
