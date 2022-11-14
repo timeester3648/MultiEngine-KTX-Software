@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{89AF369E-F58E-B539-FEA6-40106A051C9B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{3C8C880B-A895-887C-3111-9F7C9D19947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu">
+      <UniqueIdentifier>{32CC0730-1E84-497D-878B-22D97362E46D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\transcoder">
+      <UniqueIdentifier>{96F8C817-0265-8412-CB58-1C703784A67A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\basisu\zstd">
+      <UniqueIdentifier>{E69900A1-5225-6E65-5B36-F159C740CA65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils">
+      <UniqueIdentifier>{8AA66E88-7609-FE2C-1F8F-36E30BD1C9AF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\dfdutils\vulkan">
+      <UniqueIdentifier>{EAC8E849-562A-C657-DF97-0C0A4BF8FC16}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\ktx.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\basis_sgd.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\basisu\transcoder\basisu.h">
+      <Filter>lib\basisu\transcoder</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\basisu\transcoder\basisu_containers.h">
+      <Filter>lib\basisu\transcoder</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\basisu\transcoder\basisu_containers_impl.h">
+      <Filter>lib\basisu\transcoder</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\basisu\transcoder\basisu_file_headers.h">
+      <Filter>lib\basisu\transcoder</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\basisu\transcoder\basisu_transcoder.h">
+      <Filter>lib\basisu\transcoder</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\basisu\transcoder\basisu_transcoder_internal.h">
+      <Filter>lib\basisu\transcoder</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\basisu\transcoder\basisu_transcoder_uastc.h">
+      <Filter>lib\basisu\transcoder</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\dfdutils\dfd.h">
+      <Filter>lib\dfdutils</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\dfdutils\vk2dfd.inl">
+      <Filter>lib\dfdutils</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\dfdutils\vulkan\vk_platform.h">
+      <Filter>lib\dfdutils\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\dfdutils\vulkan\vulkan_core.h">
+      <Filter>lib\dfdutils\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\filestream.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\formatsize.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\gl_format.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ktxint.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\memstream.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\texture.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\texture2.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\uthash.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\vk_format.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\vkformat_enum.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="lib\basis_transcode.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\basisu\transcoder\basisu_transcoder.cpp">
+      <Filter>lib\basisu\transcoder</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\basisu\zstd\zstd.c">
+      <Filter>lib\basisu\zstd</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\checkheader.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\dfdutils\colourspaces.c">
+      <Filter>lib\dfdutils</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\dfdutils\createdfd.c">
+      <Filter>lib\dfdutils</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\dfdutils\interpretdfd.c">
+      <Filter>lib\dfdutils</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\dfdutils\printdfd.c">
+      <Filter>lib\dfdutils</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\dfdutils\queries.c">
+      <Filter>lib\dfdutils</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\dfdutils\vk2dfd.c">
+      <Filter>lib\dfdutils</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\etcdec.cxx">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\etcunpack.cxx">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\filestream.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\hashlist.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\info.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\memstream.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\strings.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\swap.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\texture.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\texture2.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vkformat_check.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vkformat_str.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
