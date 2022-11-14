@@ -30,6 +30,9 @@
     <ClInclude Include="include\ktx.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\ktxvulkan.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="lib\basis_sgd.h">
       <Filter>lib</Filter>
     </ClInclude>
@@ -159,6 +162,9 @@
     <ClInclude Include="lib\vk_format.h">
       <Filter>lib</Filter>
     </ClInclude>
+    <ClInclude Include="lib\vk_funcs.h">
+      <Filter>lib</Filter>
+    </ClInclude>
     <ClInclude Include="lib\vkformat_enum.h">
       <Filter>lib</Filter>
     </ClInclude>
@@ -269,10 +275,16 @@
     <ClCompile Include="lib\texture2.c">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="lib\vk_funcs.c">
+      <Filter>lib</Filter>
+    </ClCompile>
     <ClCompile Include="lib\vkformat_check.c">
       <Filter>lib</Filter>
     </ClCompile>
     <ClCompile Include="lib\vkformat_str.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\vkloader.c">
       <Filter>lib</Filter>
     </ClCompile>
   </ItemGroup>

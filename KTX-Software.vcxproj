@@ -149,6 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\ktx.h" />
+    <ClInclude Include="include\ktxvulkan.h" />
     <ClInclude Include="lib\basis_sgd.h" />
     <ClInclude Include="lib\basisu\encoder\basisu_backend.h" />
     <ClInclude Include="lib\basisu\encoder\basisu_basis_file.h" />
@@ -192,6 +193,7 @@
     <ClInclude Include="lib\texture2.h" />
     <ClInclude Include="lib\uthash.h" />
     <ClInclude Include="lib\vk_format.h" />
+    <ClInclude Include="lib\vk_funcs.h" />
     <ClInclude Include="lib\vkformat_enum.h" />
   </ItemGroup>
   <ItemGroup>
@@ -230,8 +232,10 @@
     <ClCompile Include="lib\swap.c" />
     <ClCompile Include="lib\texture.c" />
     <ClCompile Include="lib\texture2.c" />
+    <ClCompile Include="lib\vk_funcs.c" />
     <ClCompile Include="lib\vkformat_check.c" />
     <ClCompile Include="lib\vkformat_str.c" />
+    <ClCompile Include="lib\vkloader.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

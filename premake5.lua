@@ -55,6 +55,10 @@ project "KTX-Software"
 		"./lib/vkformat_check.c",
 		"./lib/vkformat_enum.h",
 		"./lib/vkformat_str.c",
+		"./include/ktxvulkan.h",
+		"./lib/vk_funcs.c",
+		"./lib/vk_funcs.h",
+		"./lib/vkloader.c",
 
 		"./lib/basisu/encoder/basisu_backend.cpp",
 		"./lib/basisu/encoder/basisu_backend.h",
