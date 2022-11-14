@@ -99,10 +99,6 @@ project "KTX-Software"
 		"./lib/basisu/encoder/cppspmd_type_aliases.h"
 	}
 
-	defines {
-		"KHRONOS_STATIC"
-	}
-
 	includedirs {
 		"%{IncludeDir.zstd}",
 		"%{IncludeDir.ktx_software}",
