@@ -7,6 +7,12 @@
     <Filter Include="lib">
       <UniqueIdentifier>{3C8C880B-A895-887C-3111-9F7C9D19947C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lib\astc-encoder">
+      <UniqueIdentifier>{63787361-4F71-92B3-78A3-773864FB71BF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\astc-encoder\Source">
+      <UniqueIdentifier>{03D9F906-6F10-429E-781A-A6C1E4D06897}</UniqueIdentifier>
+    </Filter>
     <Filter Include="lib\basisu">
       <UniqueIdentifier>{32CC0730-1E84-497D-878B-22D97362E46D}</UniqueIdentifier>
     </Filter>
@@ -144,6 +150,9 @@
     <ClInclude Include="lib\gl_format.h">
       <Filter>lib</Filter>
     </ClInclude>
+    <ClInclude Include="lib\gl_funcs.h">
+      <Filter>lib</Filter>
+    </ClInclude>
     <ClInclude Include="lib\ktxint.h">
       <Filter>lib</Filter>
     </ClInclude>
@@ -171,8 +180,84 @@
     <ClInclude Include="lib\vkformat_enum.h">
       <Filter>lib</Filter>
     </ClInclude>
+    <ClInclude Include="lib\version.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_averages_and_directions.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_block_sizes.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_color_quantize.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_color_unquantize.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_compress_symbolic.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_compute_variance.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_decompress_symbolic.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_diagnostic_trace.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_entry.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_find_best_partitioning.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_ideal_endpoints_and_weights.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_image.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_integer_sequence.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_mathlib.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_mathlib_softfloat.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_partition_tables.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_percentile_tables.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_pick_best_endpoint_format.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_platform_isa_detection.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_quantization.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_symbolic_physical.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_weight_align.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc-encoder\Source\astcenc_weight_quant_xfer_tables.cpp">
+      <Filter>lib\astc-encoder\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\astc_encode.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\basis_encode.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
     <ClCompile Include="lib\basis_transcode.cpp">
       <Filter>lib</Filter>
     </ClCompile>
@@ -257,6 +342,12 @@
     <ClCompile Include="lib\filestream.c">
       <Filter>lib</Filter>
     </ClCompile>
+    <ClCompile Include="lib\gl_funcs.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\glloader.c">
+      <Filter>lib</Filter>
+    </ClCompile>
     <ClCompile Include="lib\hashlist.c">
       <Filter>lib</Filter>
     </ClCompile>
@@ -291,6 +382,12 @@
       <Filter>lib</Filter>
     </ClCompile>
     <ClCompile Include="lib\vkloader.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\writer1.c">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\writer2.c">
       <Filter>lib</Filter>
     </ClCompile>
   </ItemGroup>

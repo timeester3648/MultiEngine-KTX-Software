@@ -61,6 +61,13 @@ project "KTX-Software"
 		"./lib/vk_funcs.c",
 		"./lib/vk_funcs.h",
 		"./lib/vkloader.c",
+		"./lib/gl_funcs.c",
+		"./lib/gl_funcs.h",
+		"./lib/glloader.c",
+		"./lib/basis_encode.cpp",
+		"./lib/astc_encode.cpp",
+		"./lib/writer1.c",
+		"./lib/writer2.c",
 
 		"./lib/basisu/encoder/basisu_backend.cpp",
 		"./lib/basisu/encoder/basisu_backend.h",
@@ -98,7 +105,31 @@ project "KTX-Software"
 		"./lib/basisu/encoder/cppspmd_math.h",
 		"./lib/basisu/encoder/cppspmd_math_declares.h",
 		"./lib/basisu/encoder/cppspmd_sse.h",
-		"./lib/basisu/encoder/cppspmd_type_aliases.h"
+		"./lib/basisu/encoder/cppspmd_type_aliases.h",
+
+		"./lib/astc-encoder/Source/astcenc_averages_and_directions.cpp",
+        "./lib/astc-encoder/Source/astcenc_block_sizes.cpp",
+        "./lib/astc-encoder/Source/astcenc_color_quantize.cpp",
+        "./lib/astc-encoder/Source/astcenc_color_unquantize.cpp",
+        "./lib/astc-encoder/Source/astcenc_compress_symbolic.cpp",
+        "./lib/astc-encoder/Source/astcenc_compute_variance.cpp",
+        "./lib/astc-encoder/Source/astcenc_decompress_symbolic.cpp",
+        "./lib/astc-encoder/Source/astcenc_diagnostic_trace.cpp",
+        "./lib/astc-encoder/Source/astcenc_entry.cpp",
+        "./lib/astc-encoder/Source/astcenc_find_best_partitioning.cpp",
+        "./lib/astc-encoder/Source/astcenc_ideal_endpoints_and_weights.cpp",
+        "./lib/astc-encoder/Source/astcenc_image.cpp",
+        "./lib/astc-encoder/Source/astcenc_integer_sequence.cpp",
+        "./lib/astc-encoder/Source/astcenc_mathlib.cpp",
+        "./lib/astc-encoder/Source/astcenc_mathlib_softfloat.cpp",
+        "./lib/astc-encoder/Source/astcenc_partition_tables.cpp",
+        "./lib/astc-encoder/Source/astcenc_percentile_tables.cpp",
+        "./lib/astc-encoder/Source/astcenc_pick_best_endpoint_format.cpp",
+        "./lib/astc-encoder/Source/astcenc_platform_isa_detection.cpp",
+        "./lib/astc-encoder/Source/astcenc_quantization.cpp",
+        "./lib/astc-encoder/Source/astcenc_symbolic_physical.cpp",
+        "./lib/astc-encoder/Source/astcenc_weight_align.cpp",
+        "./lib/astc-encoder/Source/astcenc_weight_quant_xfer_tables.cpp"
 	}
 
 	includedirs {
@@ -109,6 +140,16 @@ project "KTX-Software"
 		"./lib/dfdutils",
 		"./other_include",
 		"./lib/astc-encoder/Source",
+	}
+
+	defines {
+		"KTX_FEATURE_KTX1",
+		"KTX_FEATURE_KTX2",
+		"KTX_FEATURE_WRITE",
+		"BASISU_SUPPORT_SSE=1",
+		"BASISD_SUPPORT_KTX2=1",
+		"BASISU_SUPPORT_OPENCL=0",
+		"BASISD_SUPPORT_KTX2_ZSTD=1",
 	}
 
 	filter "options:sse"
@@ -129,7 +170,7 @@ project "KTX-Software"
 		defines { "__AVX2__" }
 	filter { "options:popcnt" }
 		defines { "__POPCNT__" }
-	
+
  	filter "system:windows"
 		disablewarnings { "4244", "4996", "4005", "4267" }
 
