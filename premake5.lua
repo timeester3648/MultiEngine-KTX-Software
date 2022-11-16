@@ -143,6 +143,7 @@ project "KTX-Software"
 	}
 
 	defines {
+		"LIBKTX=1",
 		"KTX_FEATURE_KTX1",
 		"KTX_FEATURE_KTX2",
 		"KTX_FEATURE_WRITE",

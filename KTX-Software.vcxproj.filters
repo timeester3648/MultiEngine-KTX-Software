@@ -180,7 +180,6 @@
     <ClInclude Include="lib\vkformat_enum.h">
       <Filter>lib</Filter>
     </ClInclude>
-    <ClInclude Include="lib\version.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lib\astc-encoder\Source\astcenc_averages_and_directions.cpp">
