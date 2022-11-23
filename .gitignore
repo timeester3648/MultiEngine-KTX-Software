@@ -52,3 +52,9 @@ cmake-build-*
 # Temps used for Windows signing on CI
 appveyor-tools
 the_khronos_group_inc.p12
+
+# exclude project files
+**.sln
+**.vcxproj
+**.vcxproj.user
+**.vcxproj.filters
