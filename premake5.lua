@@ -172,5 +172,5 @@ project "KTX-Software"
 	filter { "options:popcnt" }
 		defines { "__POPCNT__" }
 
- 	filter "action:vs*"
+ 	filter "toolset:msc"
 		disablewarnings { "4244", "4996", "4005", "4267" }
