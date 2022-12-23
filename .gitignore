@@ -33,9 +33,6 @@
 # macOS noise
 .DS_Store
 
-# version files
-version.h
-
 # Visual Studio
 .vs/
 CMakeSettings.json
