@@ -21,7 +21,6 @@ project "KTX-Software"
 		"./lib/basisu/transcoder/basisu_transcoder.cpp",
 		"./lib/basisu/transcoder/basisu_transcoder.h",
 		"./lib/basisu/transcoder/basisu.h",
-		"./lib/basisu/zstd/zstd.c",
 		"./lib/checkheader.c",
 		"./lib/dfdutils/createdfd.c",
 		"./lib/dfdutils/colourspaces.c",
