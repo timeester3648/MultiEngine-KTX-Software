@@ -51,6 +51,10 @@ If you need the library to be static, add `-D KTX_FEATURE_STATIC_LIBRARY=ON` to 
 > define `KHRONOS_STATIC` before including KTX header files.
 > This is especially important on Windows.
 
+If you want to run the CTS tests (recommended only during KTX development)
+add `-D KTX_FEATURE_TOOLS_CTS=ON` to the CMake configure command and fetch
+the CTS submodule. For more information see [Conformance Test Suite](#conformance-test-suite).
+
 If you want the Basis Universal encoders in `libktx` to use OpenCL
 add `-D BASISU_SUPPORT_OPENCL=ON` to the CMake configure command.
 
@@ -299,7 +303,7 @@ The CMake generators for Visual Studio 2017 and earlier generate projects whose 
 ```bash
 # -G shown for completeness. Not needed if you are happy
 # with the CMake's default selection.
-cmake -G "Visual Studio 15 2017" -B build -A x64 .
+cmake -G "Visual Studio 17 2022" -B build -A x64 .
 ```
 
 When using a more recent Visual Studio you simply need
@@ -343,16 +347,32 @@ install the former. The latter is included in this repo.
 
 ##### Windows signing
 
-To sign applications and the NSIS installer you need to import your certificate to either the Current User or Local Machine certificate store. This can be done
-interactively with Windows' commands `certmgr` and `certlm` respectively. Then you need to set the following CMake variables:
+To sign applications and the NSIS installer you need to import your certificate to an Azure Key Vault or to the Current User or Local Machine certificate store.
+The latter can be done interactively with Windows' commands `certmgr` and
+`certlm` respectively. You need to set the following CMake variables to
+turn on signing:
 
 | Name  | Value |
-| :---: | ----- |
-| WIN\_CODE\_SIGN\_IDENTITY | Owner* of the _Developer ID Application_ certificate to use for signing. |
-| WIN\_CS\_CERT\_SEARCH\_MACHINE\_STORE | Check this option if your certificate is in the Local Machine store.
+| ---: | ----- |
+| CODE\_SIGN\_KEY\_VAULT | Where the signing certificate is stored. One of _Azure_, _Machine_, _User_. |
+| CODE\_SIGN\_TIMESTAMP\_URL | URL of the timestamp server to use. Usually provided by the issuer of your certificate. Timestamping is required as it keeps the signatures valid even after certificate expiration.
 
-\* Owner is what is formally known as the _Subject Name_ of a certificate. It is
-displayed in the _Issued To_ column of `certmgr` and `certlm`.
+The following additional variables must be set if using Azure:
+
+| Name  | Value |
+| ---: | ----- |
+| AZURE\_KEY\_VAULT\_CERTIFICATE | Name of the certificate in Azure Key Vault.
+| AZURE\_KEY\_VAULT\_CLIENT\_ID | Id of an application (Client) registered with Azure that has permission to access the certificate.
+| AZURE\_KEY\_VAULT\_CLIENT\_SECRET | Secret to authenticate access to the Client.
+| AZURE\_KEY\_VAULT\_TENANT\_ID | Id of the Azure Active Directory (Tenant) holding the Client.
+| AZURE\_KEY\_VAULT\_URL | URL of the key vault
+
+If using a local certificate store the following variables must be set instead:
+
+| Name  | Value |
+| ---: | ----- |
+| LOCAL\_KEY\_VAULT\_SIGNING\_IDENTITY | Subject Name of code signing certificate. Displayed in 'Issued To' field of cert{lm,mgr}. Overriden by LOCAL\_KEY\_VAULT\_CERTIFICATE\_THUMBPRINT.
+| LOCAL\_KEY\_VAULT\_CERTIFICATE\_THUMBPRINT | Thumbprint of the certificate to use. Use this instead of LOCAL\_KEY\_VAULT\_SIGNING\_IDENTITY when you have multiple certificates with the same identity.
 
 #### OpenGL ES Emulator for Windows
 
@@ -404,6 +424,53 @@ cmake --build "build-android"
 ```
 
 > Note: SSE has to be disabled currently (for ABIs x86 and x86_64) due to [an issue](https://github.com/BinomialLLC/basis_universal/pull/233).
+
+Conformance Test Suite
+------------
+
+The submodule of [CTS Repository](https://github.com/KhronosGroup/KTX-Software-CTS/) is optional and
+only required for running the CTS tests during KTX development. If the CTS test suit is desired it
+can be fetched during cloning with the additional `--recurse-submodules` git clone flag:
+
+```bash
+git clone --recurse-submodules git@github.com:KhronosGroup/KTX-Software.git
+```
+
+If the repository was already cloned or whenever the submodule ref changes the submodule has to be
+updated with:
+
+```bash
+git submodule update --init --recursive tests/cts
+```
+
+(For more information on submodules see the [git documentation](https://git-scm.com/book/en/v2/Git-Tools-Submodules).)
+
+Once the submodule is fetched the CTS tests can be enabled with the `KTX_FEATURE_TOOLS_CTS`
+cmake option during cmake configuration. Please note that for `KTX_FEATURE_TOOLS_CTS` to take
+effect both `KTX_FEATURE_TESTS` and `KTX_FEATURE_TOOLS` has to be also enabled.
+The CTS integrates into `ctest` so running `ctest` will also execute the CTS tests too.
+The test cases can be limited to the CTS tests with `ctest -R ktxToolTests`.
+
+Example for development workflow with CTS testing:
+
+```bash
+# Git clone and submodule fetch 
+git clone git@github.com:KhronosGroup/KTX-Software.git
+cd KTX-Software/
+git submodule update --init --recursive tests/cts
+# Configure 
+mkdir build
+cmake -B build . -DKTX_FEATURE_DOC=ON -DKTX_FEATURE_STATIC_LIBRARY=ON -DKTX_FEATURE_TOOLS_CTS=ON -DKTX_FEATURE_TESTS=ON -DKTX_FEATURE_TOOLS_CTS=ON
+# Build everything (depending on workflow its better to build the specific target like 'ktxtools'):
+cmake --build build --target all 
+# Run every test case:
+ctest --test-dir build
+# Run only the CTS test cases:
+ctest --test-dir build -R ktxToolTests
+```
+
+To create and update CTS test cases and about their specific features and usages
+see the [CTS documentation](https://github.com/KhronosGroup/KTX-Software-CTS/blob/main/README.md).
 
 Dependencies
 ------------

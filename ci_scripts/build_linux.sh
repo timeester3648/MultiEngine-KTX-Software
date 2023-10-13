@@ -4,8 +4,21 @@
 
 # Build on Linux.
 
+######################################################################
+#  Nota Bene
+#
+# Contains untested cross-compilation support that was under
+# development when Travis-CI made arm64 Ubuntu runners available
+# rendering it unneeded. Kept here to preserve the learning and in
+# case it becomes useful.
+######################################################################
+
 # Exit if any command fails.
 set -e
+
+# cd repo root so script will work whereever the current directory
+path_to_repo_root=..
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/$path_to_repo_root"
 
 # Set parameters from command-line arguments, if any.
 for i in $@; do
@@ -18,23 +31,49 @@ CMAKE_GEN=${CMAKE_GEN:-Ninja Multi-Config}
 CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
 FEATURE_JNI=${FEATURE_JNI:-OFF}
-FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+if [ "$ARCH" = "x86_64" ]; then
+  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL+Vulkan}
+else
+  # No Vulkan SDK yet for Linux/arm64.
+  FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL}
+fi
 FEATURE_TESTS=${FEATURE_TESTS:-ON}
 FEATURE_TOOLS=${FEATURE_TOOLS:-ON}
-FEATURE_VULKAN=${FEATURE_VULKAN:-ON}
+FEATURE_TOOLS_CTS=${FEATURE_TOOLS_CTS:-ON}
+FEATURE_GL_UPLOAD=${FEATURE_GL_UPLOAD:-ON}
+FEATURE_VK_UPLOAD=${FEATURE_VK_UPLOAD:-ON}
 PACKAGE=${PACKAGE:-NO}
 SUPPORT_SSE=${SUPPORT_SSE:-ON}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
+WERROR=${WERROR:-OFF}
 
-if [ "$CMAKE_GEN" = "Ninja" -o "$CMAKE_GEN" = "Unix Makefiles" ]; then
-  BUILD_DIR=${BUILD_DIR:-build/linux-$CONFIGURATION}
-else
-  BUILD_DIR=${BUILD_DIR:-build/linux}
+if [[ "$ARCH" = "aarch64" && "$FEATURE_LOADTESTS" =~ "Vulkan" ]]; then
+  if [[ "$FEATURE_LOADTESTS" = "Vulkan" ]]; then
+    FEATURE_LOADTESTS=OFF
+  else
+    FEATURE_LOADTESTS=OpenGL
+  fi
+  echo "Forcing FEATURE_LOADTESTS to \"$FEATURE_LOADTESTS\" as no Vulkan SDK yet for Linux/arm64."
+fi
+
+if [[ -z $BUILD_DIR ]]; then
+  BUILD_DIR=build/linux
+  if [ "$ARCH" != $(uname -m) ]; then
+    BUILD_DIR+="-$ARCH-"
+  fi
+  if [ "$CMAKE_GEN" = "Ninja" -o "$CMAKE_GEN" = "Unix Makefiles" ]; then
+    # Single configuration generators.
+    BUILD_DIR+="-$CONFIGURATION"
+  fi
 fi
 
 mkdir -p $BUILD_DIR
 
-cmake_args=("-G" "$CMAKE_GEN" \
+if [ "$FEATURE_TOOLS_CTS" = "ON" ]; then
+  git submodule update --init --recursive tests/cts
+fi
+
+cmake_args=("-G" "$CMAKE_GEN"
   "-B" $BUILD_DIR \
   "-D" "CMAKE_BUILD_TYPE=$CONFIGURATION" \
   "-D" "KTX_FEATURE_DOC=$FEATURE_DOC" \
@@ -42,21 +81,27 @@ cmake_args=("-G" "$CMAKE_GEN" \
   "-D" "KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS" \
   "-D" "KTX_FEATURE_TESTS=$FEATURE_TESTS" \
   "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
-  "-D" "KTX_FEATURE_VULKAN=$FEATURE_VULKAN" \
+  "-D" "KTX_FEATURE_TOOLS_CTS=$FEATURE_TOOLS_CTS" \
+  "-D" "KTX_FEATURE_GL_UPLOAD=$FEATURE_GL_UPLOAD" \
+  "-D" "KTX_FEATURE_VK_UPLOAD=$FEATURE_VK_UPLOAD" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
-  "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
+  "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE" \
+  "-D" "KTX_WERROR=$WERROR"
 )
-config_display="Configure KTX-Software (Linux): "
+if [ "$ARCH" != $(uname -m) ]; then
+  cmake_args+=("--toolchain", "cmake/linux-$ARCH-toolchain.cmake")
+fi
+config_display="Configure KTX-Software (Linux on $ARCH): "
 for arg in "${cmake_args[@]}"; do
   case $arg in
     "-A") config_display+="Arch=" ;;
     "-G") config_display+="Generator=" ;;
     "-B") config_display+="Build Dir=" ;;
     "-D") ;;
+    "--toolchain") config_display+="Toolchain File=" ;;
     *) config_display+="$arg, " ;;
   esac
 done
-
 echo ${config_display%??}
 cmake . "${cmake_args[@]}"
 
@@ -72,7 +117,7 @@ do
   cmake --build . --config $config
   if [ "$ARCH" = "$(uname -m)" ]; then
     echo "Test KTX-Software (Linux $ARCH $config)"
-    ctest -C $config #--verbose
+    ctest --output-on-failure -C $config #--verbose
   fi
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
     echo "Pack KTX-Software (Linux $ARCH $config)"

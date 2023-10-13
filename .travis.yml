@@ -36,42 +36,44 @@ env:
     - VULKAN_INSTALL_DIR: "$HOME/VulkanSDK/$VULKAN_SDK_VER"
     - VULKAN_SDK: "$VULKAN_INSTALL_DIR/macOS"
     - WASM_BUILD: NO
+    - WERROR: ON
   jobs:
     # FEATURE_TESTS is off for arm64 macOS because we can't even build
     # them during CI. CI runs on x86_64 and there is a PostBuild command
     # that attempts to execute the compiled-for-m1 tests to have gtest
     # add the list of tests to the cmake test runner.
     - CONFIGURATION=Debug,Release PLATFORM=macOS ARCHS=x86_64
-      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
-      SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
+      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
+      FEATURE_TOOLS_CTS=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF DEPLOY_DOCS=YES PACKAGE=YES
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
-      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TESTS=OFF
-      FEATURE_TOOLS=ON SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
+      FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TESTS=OFF
+      FEATURE_TOOLS=ON FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
 
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=ON SUPPORT_OPENCL=ON
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+      FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=ON
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
-      FEATURE_TOOLS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=ON
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
+      FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=ON SUPPORT_OPENCL=ON
 
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+      FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
-      FEATURE_TOOLS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
+      FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=ON
 
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=x86_64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TOOLS=OFF
+      FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
     - CONFIGURATION=Release PLATFORM=macOS ARCHS=arm64
-      FEATURE_DOC=ON FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
-      FEATURE_TOOLS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF FEATURE_TESTS=OFF
+      FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=OFF
+      SUPPORT_OPENCL=OFF
 
     - CONFIGURATION=Debug,Release PLATFORM=iOS
-      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON FEATURE_TOOLS=OFF
-      SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
+      FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=OFF
+      FEATURE_TOOLS_CTS=OFF SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
 
 jobs:
   include:
@@ -87,18 +89,32 @@ jobs:
         - VULKAN_SDK_VER: "1.3.243"
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Debug
-          FEATURE_DOC=OFF FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
-          SUPPORT_SSE=ON SUPPORT_OPENCL=OFF
+          FEATURE_DOC=OFF FEATURE_JNI=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
+          SUPPORT_SSE=ON SUPPORT_OPENCL=OFF WERROR=ON
     - os: linux
       dist: jammy
       compiler: gcc
+      #jdk: openjdk17 # Reminder to find correct way to select jdk 17
       env:
         # NB: This must not have the fourth component of the version number.
         - VULKAN_SDK_VER: "1.3.243"
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
-          FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=ON FEATURE_TOOLS=ON
-          SUPPORT_SSE=ON SUPPORT_OPENCL=OFF PACKAGE=YES
+          FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OpenGL+Vulkan FEATURE_TOOLS=ON
+          SUPPORT_SSE=ON SUPPORT_OPENCL=OFF WERROR=ON PACKAGE=YES
+    - os: linux
+      arch: arm64
+      dist: jammy
+      compiler: gcc
+      #jdk: openjdk17
+      env:
+        # NB: This must not have the fourth component of the version number.
+        - VULKAN_SDK_VER: "1.3.243"
+        - CMAKE_GEN: Ninja
+        - CONFIGURATION=Release
+          FEATURE_DOC=ON FEATURE_JNI=ON FEATURE_LOADTESTS=OpenGL
+          FEATURE_TOOLS=ON FEATURE_TOOLS_CTS=OFF
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF WERROR=ON PACKAGE=YES
     - os: linux
       dist: jammy
       compiler: gcc
@@ -106,8 +122,8 @@ jobs:
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
-          FEATURE_TOOLS=OFF
-          SUPPORT_SSE=ON SUPPORT_OPENCL=ON PACKAGE=NO
+          FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF
+          SUPPORT_SSE=ON SUPPORT_OPENCL=ON WERROR=ON PACKAGE=NO
     - os: linux
       dist: jammy
       compiler: gcc
@@ -115,8 +131,8 @@ jobs:
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
-          FEATURE_TOOLS=OFF
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=ON PACKAGE=NO
+          FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=ON WERROR=ON PACKAGE=NO
     - os: linux
       dist: jammy
       compiler: gcc
@@ -124,8 +140,8 @@ jobs:
         - CMAKE_GEN: Ninja
         - CONFIGURATION=Release
           FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OFF
-          FEATURE_TOOLS=OFF
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=NO
+          FEATURE_TOOLS=OFF FEATURE_TOOLS_CTS=OFF
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF WERROR=ON PACKAGE=NO
     - os: linux
       dist: jammy
       compiler: clang
@@ -133,8 +149,8 @@ jobs:
       env:
         - WASM_BUILD=YES
         - CONFIGURATION=Debug
-          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF
+          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OpenGL
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF WERROR=ON
     - os: linux
       dist: jammy
       compiler: clang
@@ -142,18 +158,18 @@ jobs:
       env:
         - WASM_BUILD=YES
         - CONFIGURATION=Release
-          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=ON
-          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF PACKAGE=YES
+          FEATURE_DOC=OFF FEATURE_JNI=OFF FEATURE_LOADTESTS=OpenGL
+          SUPPORT_SSE=OFF SUPPORT_OPENCL=OFF WERROR=ON PACKAGE=YES
 
 # Phase 1: Git clone - done automatically.
 # Phase 2: Install apt addons.
 # Phase 3: Install cache components - Currently not using a cache
 # then the following phases:
 before_install:
-  - echo "Running on the following travis CI runner"
-  - uname -a
-  - echo "CMake version on the runner is"
-  - cmake --version
+  - |
+    echo -n "Running on the following travis CI runner: " && uname -a
+  - |
+    echo -n "CMake version on the runner is " && cmake --version
   #- eval "${MATRIX_EVAL}"
   - echo -e "machine github.com\n  login $GITHUB_TOKEN" >> ~/.netrc # Prevent rate limiting on Git LFS.
   - cat ~/.netrc
@@ -183,6 +199,20 @@ install:
       set +e
     fi
     if [ "$CHECK_REUSE" != "ONLY" -a "$WASM_BUILD" != "YES" ]; then
+      if [ "$TRAVIS_CPU_ARCH" = "arm64" ]; then
+        # JDK was not installed on arm64 runner. Kept for reference.
+        #sudo apt-get -qq install openjdk-17-jdk
+        # Must be manually set. Setting JAVA_HOME might be an alternative.
+        #sudo ln -s -f /usr/lib/jvm/java-1.17.0-openjdk-arm64 /usr/lib/jvm/default-java
+        # Runner now has JDK but is not setting JAVA_HOME or default-java.
+        # Delete this when fixed.
+        export JAVA_HOME=/usr/lib/jvm/temurin-11-jdk-arm64
+      fi
+      echo "JAVA_HOME = $JAVA_HOME"
+      echo "/usr/lib/jvm"
+      ls -l /usr/lib/jvm
+      echo "/usr/local/lib/jvm"
+      ls -l /usr/local/lib/jvm
       ./ci_scripts/install_linux.sh
     fi
     ;;
@@ -203,9 +233,7 @@ before_script:
     esac
   # Make sure embedded dates are correct.
   - ./install-gitconfig.sh
-  - rm TODO.md lib/mainpage.md pkgdoc/pages.md tools/toktx/toktx.cc
-  - git checkout TODO.md lib/mainpage.md pkgdoc/pages.md tools/toktx/toktx.cc
-  - git status
+  - ci_scripts/smudge_date.sh
 
 script:
 - |
@@ -265,7 +293,7 @@ before_deploy:
       # run twice. https://github.com/travis-ci/travis-ci/issues/2570 about
       # this has been open for years. What a crock!
       if [ -n "$MACOS_CERTIFICATES_P12" -a -n "$TRAVIS_TAG" -a -z "$NOTARIZED" ]; then
-        ./ci_scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD; export NOTARIZED="true"
+        ./ci_scripts/notarize.sh $BUILD_DIR/KTX-Software-*.pkg $APPLE_ID $DEVELOPMENT_TEAM $ALTOOL_PASSWORD && export NOTARIZED="true"
       fi
       ;;
     esac
@@ -314,42 +342,43 @@ deploy:
 #      #branch: master
 #      condition: $PACKAGE = YES
 # ----------------------- dpl v1 -------------------------
-  - provider: releases
-    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
-    name: $TRAVIS_TAG
-    skip_cleanup: true
-    # We can't use
-    #body: $RELNOTES
-    # because a bug in v1's backing Ruby code does not allow passing it
-    # command line option arguments that contain newlines leading to an
-    # error on Travis when we try.
-    # See https://github.com/travis-ci/dpl/issues/155.
-    #
-    # The obvious workarounds of literal "\n" or "<br />" do not work.
-    # The text is passed to GitHub but "\n" is shown literally. While "<br />"
-    # causes a newline in the rendering, the markdown interpreter does not
-    # recognize it as an actual newline so never changes the format from
-    # the initial heading format.
-    #
-    # Since we can't use either this or v2 to deply the release notes, we've
-    # rolled our own provider script for the body.
-    file_glob: true
-    file:
-      - $BUILD_DIR/KTX-Software-*-*
-    draft: true
-    prerelease: true
-    on:
-      tags: true
-      #branch: master
-      condition: $PACKAGE = YES
+##### Not working on jammy runners at present. Do everything via our script.
+#  - provider: releases
+#    token: $GITHUB_TOKEN  # Set in the repo settings page as a secure variable
+#    name: $TRAVIS_TAG
+#    skip_cleanup: true
+#    # We can't use
+#    #body: $RELNOTES
+#    # because a bug in v1's backing Ruby code does not allow passing it
+#    # command line option arguments that contain newlines leading to an
+#    # error on Travis when we try.
+#    # See https://github.com/travis-ci/dpl/issues/155.
+#    #
+#    # The obvious workarounds of literal "\n" or "<br />" do not work.
+#    # The text is passed to GitHub but "\n" is shown literally. While "<br />"
+#    # causes a newline in the rendering, the markdown interpreter does not
+#    # recognize it as an actual newline so never changes the format from
+#    # the initial heading format.
+#    #
+#    # Since we can't use either this or v2 to deply the release notes, we've
+#    # rolled our own provider script for the body.
+#    file_glob: true
+#    file:
+#      - $BUILD_DIR/KTX-Software-*-*
+#    draft: true
+#    prerelease: true
+#    on:
+#      tags: true
+#      #branch: master
+#      condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].*
 
   - provider: script
     edge: true
-    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --draft true --prerelease true
+    script: ruby ci_scripts/github_release.rb -s ${GITHUB_TOKEN} -r ${TRAVIS_REPO_SLUG} -c $REL_DESC_FILE -t ${TRAVIS_TAG} --overwrite true --draft true --prerelease true $BUILD_DIR/KTX-Software-*-*
     on:
       tags: true
       #branch: master
-      condition: $PACKAGE = YES
+      condition: $PACKAGE = "YES" && $TRAVIS_TAG =~ ^v[0-9].*
 # ---------------------------------------------------------
 
 # vim:ai:ts=4:sts=2:sw=2:expandtab

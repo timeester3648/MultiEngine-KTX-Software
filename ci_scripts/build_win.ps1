@@ -24,23 +24,35 @@ function Set-ConfigVariable {
   return $res
 }
 
+# Build for the local machine by default.
+$defaultArch = $env:processor_architecture.toLower()
+if ($defaultArch -eq "amd64") {
+  $defaultArch = "x64"
+} elseif ($defaultArch -ne "arm64") {
+  echo "KTX build for Windows does not support $defaultArch architecture."
+  echo "Only amd64 and arm64 are supported."
+  exit 1
+}
+
 # These defaults are here to permit easy running of the script locally
 # when debugging is needed. Use local variables to avoid polluting the
-# environment. Some case have been observed where setting env. var's here
-# sets them for the parent as well.
-$ARCH = Set-ConfigVariable ARCH "x64"
+# environment. Some cases have been observed where setting env. var's
+# here sets them for the parent as well.
+$ARCH = Set-ConfigVariable ARCH $defaultArch
 $BUILD_DIR = Set-ConfigVariable BUILD_DIR "build/build-batch-vs2022"
 $CONFIGURATION = Set-ConfigVariable CONFIGURATION "Release"
 $CMAKE_GEN = Set-ConfigVariable CMAKE_GEN "Visual Studio 17 2022"
 $CMAKE_TOOLSET = Set-ConfigVariable CMAKE_TOOLSET ""
 $FEATURE_DOC = Set-ConfigVariable FEATURE_DOC "OFF"
 $FEATURE_JNI = Set-ConfigVariable FEATURE_JNI "OFF"
-$FEATURE_LOADTESTS = Set-ConfigVariable FEATURE_LOADTESTS "OFF"
-$FEATURE_TOOLS = Set-ConfigVariable FEATURE_TOOLS "ON"
+$FEATURE_LOADTESTS = Set-ConfigVariable FEATURE_LOADTESTS "OpenGL+Vulkan"
 $FEATURE_TESTS = Set-ConfigVariable FEATURE_TESTS "ON"
+$FEATURE_TOOLS = Set-ConfigVariable FEATURE_TOOLS "ON"
+$FEATURE_TOOLS_CTS = Set-ConfigVariable FEATURE_TOOLS_CTS "ON"
 $PACKAGE = Set-ConfigVariable PACKAGE "NO"
 $SUPPORT_SSE = Set-ConfigVariable SUPPORT_SSE "ON"
 $SUPPORT_OPENCL = Set-ConfigVariable SUPPORT_OPENCL "OFF"
+$WERROR = Set-ConfigVariable WERROR "OFF"
 $OPENGL_ES_EMULATOR = Set-ConfigVariable OPENGL_ES_EMULATOR `
   "c:/Imagination` Technologies/PowerVR_Graphics/PowerVR_Tools/PVRVFrame/Library/Windows_x86_64"
 $CODE_SIGN_KEY_VAULT = Set-ConfigVariable CODE_SIGN_KEY_VAULT ""
@@ -53,11 +65,15 @@ $AZURE_KEY_VAULT_CLIENT_ID = Set-ConfigVariable AZURE_KEY_VAULT_CLIENT_ID ""
 $AZURE_KEY_VAULT_CLIENT_SECRET = Set-ConfigVariable AZURE_KEY_VAULT_CLIENT_SECRET ""
 $AZURE_KEY_VAULT_TENANT_ID = Set-ConfigVariable AZURE_KEY_VAULT_TENANT_ID ""
 
-if ($FEATURE_LOADTESTS -eq "ON")  { $need_gles_emulator=1 }
+if ($FEATURE_LOADTESTS -match 'OpenGL')  { $need_gles_emulator=1 }
 
 if (($PACKAGE -eq "YES") -and ($FEATURE_TOOLS -eq "OFF")) {
   echo "Error: Cannot package a configuration that does not build tools. Set FEATURE_TOOLS to ON or PACKAGE to NO"
   exit 2
+}
+
+if (($FEATURE_TOOLS_CTS -eq "ON")) {
+  git submodule update --init --recursive tests/cts
 }
 
 $cmake_args = @(
@@ -74,10 +90,12 @@ $cmake_args += @(
   "-D", "KTX_FEATURE_DOC=$FEATURE_DOC"
   "-D", "KTX_FEATURE_JNI=$FEATURE_JNI"
   "-D", "KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS"
-  "-D", "KTX_FEATURE_TOOLS=$FEATURE_TOOLS"
   "-D", "KTX_FEATURE_TESTS=$FEATURE_TESTS"
+  "-D", "KTX_FEATURE_TOOLS=$FEATURE_TOOLS"
+  "-D", "KTX_FEATURE_TOOLS_CTS=$FEATURE_TOOLS_CTS"
   "-D", "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
   "-D", "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL"
+  "-D", "KTX_WERROR=$WERROR"
   "-D", "CODE_SIGN_KEY_VAULT=$CODE_SIGN_KEY_VAULT"
 )
 if ($CODE_SIGN_KEY_VAULT) {

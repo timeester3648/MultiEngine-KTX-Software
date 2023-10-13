@@ -15,7 +15,8 @@ on:
     # Also trigger on push of release tags to any branch. Useful
     # for testing release builds before merging to main.
     tags:
-      - "v*.*.*"
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+      - 'v[0-9]+\.[0-9]+\.[0-9]+-*'
     paths-ignore:
       - .appveyor.yml
       - .travis.yml
@@ -32,19 +33,19 @@ jobs:
         arch: [ x64 ]
         options: [
           {config: 'Debug,Release',
-           doc: ON, jni: ON, loadtests: ON, tests: ON, tools: ON,
+           doc: ON, jni: ON, loadtests: OpenGL+Vulkan, tests: ON, tools: ON, tools_cts: ON,
            package: YES,
            sse: ON, opencl: OFF},
           {config: Release,
-           doc: OFF, loadtests: OFF, tests: OFF, tools: OFF,
+           doc: OFF, loadtests: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
            package: NO,
            sse: OFF, opencl: OFF},
           {config: Release,
-           doc: OFF, loadtests: OFF, tests: OFF, tools: OFF,
+           doc: OFF, loadtests: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
            package: NO,
            sse: OFF, opencl: ON},
           {config: Release,
-           doc: OFF, loadtests: OFF, tests: OFF, tools: OFF,
+           doc: OFF, loadtests: OFF, tests: OFF, tools: OFF, tools_cts: OFF,
            package: NO,
            sse: ON, opencl: ON}
         ]
@@ -55,7 +56,7 @@ jobs:
             arch: x64
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: ON, loadtests: ON, tests: ON, tools: ON,
+              doc: ON, jni: ON, loadtests: OpenGL+Vulkan, tests: ON, tools: ON, tools_cts: ON,
               package: NO,
               sse: ON, opencl: OFF
             }
@@ -67,7 +68,7 @@ jobs:
             # built tests
             options: {
               config: 'Debug,Release',
-              doc: ON, jni: OFF, loadtests: OFF, tests: OFF, tools: ON,
+              doc: ON, jni: ON, loadtests: OFF, tests: ON, tools: ON, tools_cts: ON,
               package: YES
             }
     runs-on: ${{ matrix.os }}
@@ -89,9 +90,11 @@ jobs:
       FEATURE_LOADTESTS: ${{ matrix.options.loadtests }}
       FEATURE_TESTS: ${{ matrix.options.tests }}
       FEATURE_TOOLS: ${{ matrix.options.tools }}
+      FEATURE_TOOLS_CTS: ${{ matrix.options.tools_cts }}
       PACKAGE: ${{ matrix.options.package }}
       SUPPORT_OPENCL: ${{ matrix.options.opencl }}
       SUPPORT_SSE: ${{ matrix.options.sse }}
+      WERROR: ON
 
       CODE_SIGN_TIMESTAMP_URL: "http://timestamp.digicert.com"
       AZURE_KEY_VAULT_URL: ${{ secrets.AZURE_KEY_VAULT_URL }}
@@ -113,6 +116,13 @@ jobs:
         # Fetch all history to make sure tags are
         # included (used for version creation)
         fetch-depth: 0
+
+    - name: Install NSIS with large string support
+      shell: bash
+      run: |
+        stack exec -- wget -O nsis-3.08-strlen_8192.zip https://downloads.sourceforge.net/nsis/NSIS%203/3.08/nsis-3.08-strlen_8192.zip
+        7z x -aoa -o"/c/Program Files (x86)/NSIS" nsis-3.08-strlen_8192.zip
+        rm nsis-3.08-strlen_8192.zip
 
     - name: Force fetch provoking tag's annotation.
       # Work around https://github.com/actions/checkout/issues/290.
@@ -165,6 +175,12 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
+    - name: Smudge embedded dates
+      if: matrix.options.doc == 'ON'
+      run: |
+        ./install-gitconfig.ps1
+        ci_scripts/smudge_date.ps1
+
     - name: Build Windows
       #   The installers run as part of "Install Dependencies" add
       # environment variables to the registry and augment $Path there.
@@ -188,7 +204,11 @@ jobs:
 
     - name: Test Windows build
       if: matrix.arch == 'x64' && matrix.options.tests == 'ON'
-      run: ctest --test-dir $env:BUILD_DIR -C Release
+      run: ctest --output-on-failure --test-dir $env:BUILD_DIR -C Release
+
+    - name: Upload test log
+      if: ${{ failure() }}
+      run: ci_scripts/on_failure.ps1
 
     - name: Get KTX version
       if: matrix.options.package == 'YES'

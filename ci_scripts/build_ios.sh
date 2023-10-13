@@ -19,12 +19,13 @@ ARCH=${ARCH:-$(uname -m)}
 CONFIGURATION=${CONFIGURATION:-Release}
 FEATURE_DOC=${FEATURE_DOC:-OFF}
 FEATURE_JNI=${FEATURE_JNI:-OFF}
-FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-ON}
+FEATURE_LOADTESTS=${FEATURE_LOADTESTS:-OpenGL+Vulkan}
 FEATURE_TESTS=${FEATURE_TESTS:-OFF}
 FEATURE_TOOLS=${FEATURE_TOOLS:-OFF}
 PACKAGE=${PACKAGE:-NO}
 SUPPORT_OPENCL=${SUPPORT_OPENCL:-OFF}
 SUPPORT_SSE=OFF
+WERROR=${WERROR:-OFF}
 
 BUILD_DIR=${BUILD_DIR:-build/ios}
 
@@ -60,14 +61,15 @@ set -o pipefail
 cmake_args=("-G" "Xcode" \
   "-B" $BUILD_DIR \
   "-D" "CMAKE_SYSTEM_NAME=iOS" \
-  "-D" "ISA_NEON=ON" \
+  "-D" "ASTCENC_ISA_NEON=ON" \
   "-D" "KTX_FEATURE_DOC=$FEATURE_DOC" \
   "-D" "KTX_FEATURE_JNI=$FEATURE_JNI" \
   "-D" "KTX_FEATURE_LOADTEST_APPS=$FEATURE_LOADTESTS" \
   "-D" "KTX_FEATURE_TESTS=$FEATURE_TESTS" \
   "-D" "KTX_FEATURE_TOOLS=$FEATURE_TOOLS" \
   "-D" "BASISU_SUPPORT_OPENCL=$SUPPORT_OPENCL" \
-  "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE"
+  "-D" "BASISU_SUPPORT_SSE=$SUPPORT_SSE" \
+  "-D" "KTX_WERROR=$WERROR"
 )
 config_display="Configure KTX-Software (iOS): "
 for arg in "${cmake_args[@]}"; do
@@ -92,8 +94,8 @@ do
   echo "Build KTX-Software (iOS $config)"
   cmake --build . --config $config -- -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO | handle_compiler_output
 
-  #echo "Build KTX-Software (iOS Simulator $config) FEATURE_DOC=$FEATURE_DOC FEATURE_JNI=$FEATURE_JNI FEATURE_LOADTESTS=$FEATURE_LOADTESTS SUPPORT_SSE=OFF SUPPORT_OPENCL=$SUPPORT_OPENCL"
-  # cmake --build . --config $config -- -sdk iphonesimulator
+  #echo "Build KTX-Software (iOS Simulator $config)"
+  #cmake --build . --config $config -- -sdk iphonesimulator
 
   if [ "$config" = "Release" -a "$PACKAGE" = "YES" ]; then
     echo "Pack KTX-Software (iOS $config)"

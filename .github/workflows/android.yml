@@ -15,7 +15,8 @@ on:
     # Also trigger on push of release tags to any branch. Useful
     # for testing release builds before merging to main.
     tags:
-      - "v*.*.*"
+      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+      - 'v[0-9]+\.[0-9]+\.[0-9]+-*'
     paths-ignore:
       - .appveyor.yml
       - .travis.yml
@@ -27,6 +28,9 @@ jobs:
   linux:
     runs-on: ubuntu-latest
 
+    env:
+      WERROR: ON
+
     steps:
     - uses: actions/checkout@v3
       with:
@@ -37,7 +41,7 @@ jobs:
     - uses: nttld/setup-ndk@v1
       id: setup-ndk
       with:
-        ndk-version: r21e
+        ndk-version: r25c
         add-to-path: false
 
     - name: Force fetch provoking tag's annotation.
@@ -49,11 +53,11 @@ jobs:
       run: sudo apt-get install -y ninja-build
 
     - name: android_Debug_arm64-v8a
-      run: ./ci_scripts/build_android_debug.sh
+      run: ./ci_scripts/build_android.sh
       env:
         ANDROID_ABI: arm64-v8a
         ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
-        ASTC_ISA: "ISA_NEON=ON"
+        ASTCENC_ISA: "ASTCENC_ISA_NEON=ON"
         CONFIGURATION: Debug
 
     - name: android_arm64-v8a
@@ -61,7 +65,8 @@ jobs:
       env:
         ANDROID_ABI: arm64-v8a
         ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
-        ASTC_ISA: "ISA_NEON=ON"
+        ASTCENC_ISA: "ASTCENC_ISA_NEON=ON"
+        CONFIGURATION: Release
 
     # Android ABI x86 is obsolete
     # and not supported by ARM ASTC encoder

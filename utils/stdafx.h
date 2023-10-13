@@ -5,7 +5,12 @@
 
 #pragma once
 
-#define _CRT_SECURE_NO_WARNINGS // For _WIN32. Must be before <stdio.h>.
+#if defined(_WIN32)
+  // _CRT_SECURE_NO_WARNINGS must be defined before <windows.h>,
+  // <stdio.h> and and <iostream>
+  #define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #ifdef _WIN32
@@ -19,7 +24,6 @@
 
   #define _setmode(x, y) 0
   #define _tmain main
-  #define _TCHAR char
   #define _tcsncmp strncmp
   #define _tcscmp strcmp
   #define _tgetenv getenv
@@ -34,10 +38,24 @@
   #define _tfopen fopen
   #define _trename rename
   #define _tunlink unlink
-  #define _T(x) x
+  #if !defined(_TCHAR)
+    #define _TCHAR char
+    #define _T(x) x
+  #endif
+#endif
+#if !defined(_tstring)
+  #if defined(_UNICODE)
+    #define _tstring std::wstring
+  #else
+    #define _tstring std::string
+  #endif
 #endif
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
 
-
+#if defined(_UNICODE)
+    #define _tstring std::wstring
+#else
+    #define _tstring std::string
+#endif
