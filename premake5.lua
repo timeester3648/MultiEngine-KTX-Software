@@ -43,6 +43,8 @@ project "KTX-Software"
 		"./lib/ktxint.h",
 		"./lib/memstream.c",
 		"./lib/memstream.h",
+		"./lib/miniz_wrapper.h",
+		"./lib/miniz_wrapper.cpp",
 		"./lib/strings.c",
 		"./lib/swap.c",
 		"./lib/texture.c",
