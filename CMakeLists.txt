@@ -10,6 +10,16 @@ find_package(Bash REQUIRED)
 
 include(cmake/version.cmake)
 
+if(POLICY CMP0149)
+    # Ignore CMAKE_SYSTEM_VERSION and select either latest available
+    # Windows SDK or that specified in WindowsSDKVersion environment
+    # variable  Needed because OLD policy picks SDK that matches
+    # system version, CI uses Windows Server 2022 and its matching
+    # SDK lacks the arm64 glu32.lib which causes builds to fail.
+    # MUST be set before project() command.
+    cmake_policy(SET CMP0149 NEW)
+endif()
+
 project(KTX-Software
     VERSION ${KTX_VERSION}
     DESCRIPTION "Libraries and tools to create and read KTX image texture files."
@@ -40,6 +50,7 @@ CMAKE_DEPENDENT_OPTION( KTX_FEATURE_TOOLS
 option( KTX_FEATURE_DOC "Create KTX documentation." OFF )
 option( KTX_FEATURE_STATIC_LIBRARY "Create static libraries (shared otherwise)." ${LIB_TYPE_DEFAULT} )
 option( KTX_FEATURE_JNI "Create Java bindings for libktx." OFF )
+option( KTX_FEATURE_PY "Create Python source distribution." OFF )
 option( KTX_FEATURE_TESTS "Create unit tests." ON )
 option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS submodule)." OFF )
 
@@ -113,6 +124,18 @@ set( KTX_FEATURE_LOADTEST_APPS
 set_property( CACHE KTX_FEATURE_LOADTEST_APPS
               PROPERTY STRINGS OFF OpenGL Vulkan OpenGL+Vulkan
 )
+if(WIN32 OR APPLE)
+    if(NOT IOS)
+        CMAKE_DEPENDENT_OPTION( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES
+            "Look for locally installed dependencies. Fail build if not found. When OFF use binaries from the KTX-Software repo, if available for the target processor. Useful when building for Windows arm64 using vcpkg packages."
+            OFF
+            KTX_FEATURE_LOADTEST_APPS
+            OFF
+        )
+    endif()
+else()
+    set( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES ON )
+endif()
 
 # Platform specific settings
 
@@ -241,6 +264,9 @@ if(MSVC)
     # because `/W4;/WX` is returned as a single string.
     add_compile_options( /W4;$<$<BOOL:${KTX_WERROR}>:/WX> )
     add_compile_options( $<IF:$<CONFIG:Debug>,/Gz,/O2> )
+    # Enable UTF-8 support
+    add_compile_options( $<$<C_COMPILER_ID:MSVC>:/utf-8> )
+    add_compile_options( $<$<CXX_COMPILER_ID:MSVC>:/utf-8> )
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU"
        OR ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     add_compile_options( -Wall -Wextra $<$<BOOL:${KTX_WERROR}>:-Werror>)
@@ -408,7 +434,7 @@ if(WIN32)
     # generators (like Visual Studio) to take the exact path and not
     # change it.
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${KTX_BUILD_DIR}/$<CONFIG>>)
-elseif(APPLE)
+elseif(APPLE OR LINUX)
     if(NOT IOS)
         # Set a common RUNTIME_OUTPUT_DIR and LIBRARY_OUTPUT_DIR for all targets,
         # so that INSTALL RPATH is functional in build directory as well.
@@ -444,6 +470,9 @@ macro(common_libktx_settings target enable_write library_type)
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "YES"
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED YES
+
     )
     if(IOS)
         set_target_properties(${target} PROPERTIES
@@ -706,6 +735,10 @@ if(KTX_FEATURE_JNI)
     add_subdirectory(interface/java_binding)
 endif()
 
+if(KTX_FEATURE_PY)
+    add_subdirectory(interface/python_binding)
+endif()
+
 create_version_header(lib ktx)
 create_version_file()
 
@@ -915,6 +948,7 @@ add_library( objUtil STATIC
     utils/sbufstream.h
     utils/scapp.h
     utils/stdafx.h
+    utils/platform_utils.h
     utils/unused.h
     )
 target_include_directories(
@@ -1015,9 +1049,16 @@ else()
 endif()
 
 # Other external projects
-set(FMT_SYSTEM_HEADERS ON)
-add_subdirectory(other_projects/fmt)
-add_subdirectory(other_projects/cxxopts)
+# `NOT TARGET`s here are a precaution. They would only be exercised if
+# this CMakeLists is included in another project which is unlikely
+# except for building the ktx library.
+if((KTX_FEATURE_TOOLS OR KTX_FEATURE_TESTS) AND NOT TARGET fmt::fmt)
+    set(FMT_SYSTEM_HEADERS ON)
+    add_subdirectory(other_projects/fmt)
+endif()
+if(KTX_FEATURE_TOOLS AND NOT TARGET cxxopts::cxxopts)
+    add_subdirectory(other_projects/cxxopts)
+endif()
 
 # Tools
 if(KTX_FEATURE_TOOLS)

@@ -52,7 +52,7 @@ pushd "$BUILD_DIR"
 echo "Build KTX-Software (Android $ANDROID_ABI $CONFIGURATION)"
 cmake --build . --config $CONFIGURATION -j
 # echo "Test KTX-Software (Android $ANDROID_ABI Release)"
-# ctest -C $CONFIGURATION # --verbose
+# ctest --output-on-failure -C $CONFIGURATION # --verbose
 echo "Install KTX-Software (Android $ANDROID_ABI $CONFIGURATION)"
 cmake --install . --config $CONFIGURATION --prefix ../$INSTALL_DIR
 
