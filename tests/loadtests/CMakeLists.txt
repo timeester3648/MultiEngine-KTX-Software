@@ -1,8 +1,6 @@
 # Copyright 2017-2020 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-include(CMakePrintHelpers)
-
 if(WIN32)
     cmake_print_variables(
         CMAKE_SYSTEM_VERSION
@@ -18,6 +16,14 @@ if(NOT IOS)
         find_package(OpenGL REQUIRED)
     endif()
     if(KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES)
+        # When using a local SDL2 package installed by brew on macOS, at
+        # least, a mysterious .../lib/$<CONFIG> appears in the library
+        # search paths in the generated project. I've been unable to find
+        # this in the {INTERFACE,}_LINK_DIRECTORIES properties in any of
+        # the SDL2::SDL2 or {gl3,vk}loadtests targets. My guess is the Xcode
+        # generator is adding it. It leads to a harmless warning during
+        # build, harmless because the libraries are referenced by full paths
+        # and the .../lib directory is in the search path of SDL2::SDL2.
         find_package(SDL2 REQUIRED)
         if(NOT EMSCRIPTEN)
             # Tests that require assimp are omitted from loadtests

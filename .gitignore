@@ -54,6 +54,9 @@ cmake-build-*
 appveyor-tools
 the_khronos_group_inc.p12
 
+# Place for random developer test files.
+/testground/
+
 # exclude project files
 **.sln
 **.vcxproj

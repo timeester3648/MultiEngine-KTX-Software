@@ -4,6 +4,8 @@
 
 cmake_minimum_required(VERSION 3.15)
 
+include(CMakePrintHelpers)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules/")
 
 find_package(Bash REQUIRED)
@@ -137,6 +139,12 @@ else()
     set( KTX_LOADTEST_APPS_USE_LOCAL_DEPENDENCIES ON )
 endif()
 
+option( KTX_GENERATE_VK_FILES
+    "Include targets for generating VkFormat related files. For project developers only."
+    OFF
+)
+mark_as_advanced(FORCE KTX_GENERATE_VK_FILES)
+
 # Platform specific settings
 
 if(APPLE)
@@ -253,7 +261,9 @@ else()
 endif()
 
 # Depends on the settings, so it must be included after
-include(cmake/mkvk.cmake)
+if(KTX_GENERATE_VK_FILES)
+    include(cmake/mkvk.cmake)
+endif()
 
 # Global compile & link options including optimization flags
 
@@ -457,7 +467,7 @@ add_library( ktx_read ${LIB_TYPE}
 macro(common_libktx_settings target enable_write library_type)
 
     if(TARGET mkvk)
-        # Creating vulkan headers is only required when Vulkan SDK updates.
+        # Creating vulkan headers only required after Vulkan Spec/SDK updates.
         add_dependencies(${target} mkvk)
     endif()
 
@@ -646,7 +656,7 @@ macro(common_libktx_settings target enable_write library_type)
         find_package(Threads REQUIRED)
         target_link_libraries(
             ${target}
-        PUBLIC
+            PRIVATE
             dl
             Threads::Threads
         )
@@ -877,6 +887,7 @@ if(EMSCRIPTEN)
         "SHELL:-s EXPORT_NAME=LIBKTX"
         "SHELL:-s EXPORTED_RUNTIME_METHODS=[\'GL\']"
         "SHELL:-s GL_PREINITIALIZED_CONTEXT=1"
+        "SHELL:-s GL_ENABLE_GET_PROC_ADDRESS=1" # For Emscripten 3.1.51+
     )
     set_target_properties( ktx_js PROPERTIES OUTPUT_NAME "libktx")
 
@@ -1145,7 +1156,7 @@ install(EXPORT KTXTargets
     FILE KtxTargets.cmake
     NAMESPACE KTX::
     DESTINATION lib/cmake/ktx
-    COMPONENT library
+    COMPONENT dev
 )
 
 include(CMakePackageConfigHelpers)
@@ -1158,7 +1169,7 @@ install( FILES
     "cmake/KtxConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/KtxConfigVersion.cmake"
     DESTINATION lib/cmake/ktx
-    COMPONENT library
+    COMPONENT dev
 )
 
 # CPack
@@ -1245,6 +1256,16 @@ elseif(LINUX)
     set(CPACK_GENERATOR DEB RPM TBZ2)
     set(CPACK_PACKAGE_CHECKSUM SHA1)
     set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ReadMe.txt")
+
+    # This fixes the directory permission derived from Ubuntu ${BUILD_DIR} of 0775 to 0755.
+    # otherwise when installing the RPM, it conflicts with the base filesystem.rpm that is
+    # setting the directory permissions and owns them to 0755.
+    # See GitHub Issue #827.
+    # NOTE: Alternatively It would be better build the RPM through a docker or RedHat OS in the CI
+    set(CPACK_RPM_DEFAULT_DIR_PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE)
 elseif(WIN32)
     set(CPACK_GENERATOR "NSIS")
     # Add logo to top left of installer pages. Despite the installer-
