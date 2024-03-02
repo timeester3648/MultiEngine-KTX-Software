@@ -9,7 +9,7 @@ project "KTX-Software"
 	inlining "Auto"
 
 	files {
-		-- taken from CMakeLists.txt
+		-- Note: taken from CMakeLists.txt
 		"./include/ktx.h",
 		"./lib/basis_sgd.h",
 		"./lib/basis_transcode.cpp",
