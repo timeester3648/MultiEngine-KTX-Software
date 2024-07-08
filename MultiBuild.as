@@ -4,7 +4,7 @@ void main(MultiBuild::Workspace& workspace) {
 
 	project.name("KTX-Software");
 	properties.binary_object_kind(MultiBuild::BinaryObjectKind::eStaticLib);
-	project.license("./LICENSE");
+	project.license("./LICENSE.md");
 
 	properties.project_includes("zstd");
 
@@ -157,7 +157,7 @@ void main(MultiBuild::Workspace& workspace) {
 	});
 
 	{
-		MultiBuild::ScopedFilter _(workspace, "project.compiler:VisualCpp");
+		MultiBuild::ScopedFilter _(project, "project.compiler:VisualCpp");
 		properties.disable_warnings({ "4244", "4996", "4005", "4267" });
 	}
 }
