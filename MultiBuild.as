@@ -114,7 +114,19 @@ void main(MultiBuild::Workspace& workspace) {
 		"./utils/stdafx.h",
 		"./utils/platform_utils.h",
 		"./utils/unused.h",
+
+		"./lib/basis_encode.cpp",
+		"./lib/astc_encode.cpp",
+		"./lib/writer1.c",
+		"./lib/writer2.c",
+
+		"./lib/texture1.c",
+		"./lib/texture1.h",
+
+		"./external/astc-encoder/Source/*.cpp"
 	});
+
+	properties.excluded_files("./external/astc-encoder/Source/astcenccli*");
 
 	properties.include_directories({
 		"./utils",
