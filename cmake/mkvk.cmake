@@ -7,7 +7,8 @@
 # registry, vk.xml, in the Vulkan-Docs repo.
 
 # NOTE: Since this must be explicitly included by setting an option,
-# require sought packages.
+# require sought packages. However, in order to give an informative
+# error, REQUIRED is not used in the find_* commands.
 #
 # CAUTION: Outputs of custom commands are deleted during a clean
 # operation so these targets result in clean deleting what are normally
@@ -22,9 +23,10 @@ if (NOT IOS AND NOT ANDROID)
 #    # I haven't investigated why.
 #    find_package(Vulkan REQUIRED)
 
-# This file is included from so has the same scope as the including file.
-# If we change Vulkan_INCLUDE_DIR, other users will be effected.
-    set(mkvk_vulkan_include_dir lib/dfdutils)
+    # This cmake file is included from its parent so has the same scope as
+    # the including file. If we change Vulkan_INCLUDE_DIR, other parts will
+    # be affected.
+    set(mkvk_vulkan_include_dir external/dfdutils)
 else()
     # Skip mkvk. There is no need to use iOS or Android to regenerate
     # the files.
@@ -50,15 +52,42 @@ set(vulkan_header "${mkvk_vulkan_include_dir}/vulkan/vulkan_core.h")
 #    set(CYGWIN_INSTALL_PATH "C:\\Program Files\\Git\\usr")
 #endif()
 
-find_package(Perl REQUIRED)
+string(APPEND not_found_error
+    "not found. "
+    "This is only needed by project maintainers when regenerating source files. "
+    "To silence, set KTX_GENERATE_VK_FILES OFF.")
+find_package(Perl QUIET)
+# Painful. Oh for a way to provide custom error messages for failures.
+if(NOT PERL_EXECUTABLE)
+    message(FATAL_ERROR "Perl executable ${not_found_error}")
+endif()
+
+set(Ruby_FIND_VIRTUALENV FIRST)
+find_package(Ruby 3 QUIET)
+if(NOT Ruby_EXECUTABLE)
+    message(FATAL_ERROR "Ruby v3 executable ${not_found_error}")
+endif()
+
+find_path(KTX_SPECIFICATION
+    NAMES formats.json
+    PATHS ${PROJECT_SOURCE_DIR}/../KTX-Specification
+    NO_DEFAULT_PATH)
+if(NOT KTX_SPECIFICATION)
+    message(FATAL_ERROR "KTX-Specification repo clone ${not_found_error}")
+endif()
 
 list(APPEND mkvkformatfiles_input
     ${vulkan_header}
-    lib/mkvkformatfiles)
+    scripts/mkvkformatfiles)
 list(APPEND mkvkformatfiles_output
+    "${PROJECT_SOURCE_DIR}/interface/java_binding/src/main/java/org/khronos/ktx/VkFormat.java"
+    "${PROJECT_SOURCE_DIR}/interface/js_binding/vk_format.inl"
+    "${PROJECT_SOURCE_DIR}/interface/python_binding/pyktx/vk_format.py"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_enum.h"
+    "${PROJECT_SOURCE_DIR}/lib/vkformat_typesize.c"
     "${PROJECT_SOURCE_DIR}/lib/vkformat_check.c"
-    "${PROJECT_SOURCE_DIR}/lib/vkformat_str.c")
+    "${PROJECT_SOURCE_DIR}/lib/vkformat_str.c"
+    "${PROJECT_SOURCE_DIR}tests/unittests/vkformat_list.inl")
 
 # CAUTION: When a COMMAND contains VAR="Value" CMake messes up the escaping
 # for Bash. With or without VERBATIM, if Value has no spaces CMake changes it
@@ -75,12 +104,11 @@ list(APPEND mkvkformatfiles_output
 # parses successfully.
 
 list(APPEND mvffc_as_list
-    Vulkan_INCLUDE_DIR="${mkvk_vulkan_include_dir}" lib/mkvkformatfiles lib)
-    list(JOIN mvffc_as_list " " mvffc_as_string)
+    scripts/mkvkformatfiles ./ ${vulkan_header})
+list(JOIN mvffc_as_list " " mvffc_as_string)
     set(mkvkformatfiles_command "${BASH_EXECUTABLE}" -c "${mvffc_as_string}")
 
 add_custom_command(OUTPUT ${mkvkformatfiles_output}
-    COMMAND ${CMAKE_COMMAND} -E make_directory lib
     COMMAND ${mkvkformatfiles_command}
     DEPENDS ${mkvkformatfiles_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
@@ -95,14 +123,13 @@ add_custom_target(mkvkformatfiles
 
 list(APPEND makevk2dfd_input
     ${vulkan_header}
-    lib/dfdutils/makevk2dfd.pl)
+    external/dfdutils/makevk2dfd.pl)
 set(makevk2dfd_output
-    "${PROJECT_SOURCE_DIR}/lib/dfdutils/vk2dfd.inl")
+    "${PROJECT_SOURCE_DIR}/external/dfdutils/vk2dfd.inl")
 
 add_custom_command(
     OUTPUT ${makevk2dfd_output}
-    COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makevk2dfd.pl ${vulkan_header} lib/dfdutils/vk2dfd.inl
+    COMMAND "${PERL_EXECUTABLE}" external/dfdutils/makevk2dfd.pl ${vulkan_header} external/dfdutils/vk2dfd.inl
     DEPENDS ${makevk2dfd_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generating VkFormat/DFD switch body"
@@ -117,14 +144,14 @@ add_custom_target(makevk2dfd
 
 list(APPEND makedfd2vk_input
     ${vulkan_header}
-    lib/dfdutils/makedfd2vk.pl)
+    external/dfdutils/makedfd2vk.pl)
 list(APPEND makedfd2vk_output
-    "${PROJECT_SOURCE_DIR}/lib/dfdutils/dfd2vk.inl")
+    "${PROJECT_SOURCE_DIR}/external/dfdutils/dfd2vk.inl")
 
 add_custom_command(
     OUTPUT ${makedfd2vk_output}
-    COMMAND ${CMAKE_COMMAND} -E make_directory lib/dfdutils
-    COMMAND "${PERL_EXECUTABLE}" lib/dfdutils/makedfd2vk.pl ${vulkan_header} lib/dfdutils/dfd2vk.inl
+    COMMAND ${CMAKE_COMMAND} -E make_directory external/dfdutils
+    COMMAND "${PERL_EXECUTABLE}" external/dfdutils/makedfd2vk.pl ${vulkan_header} external/dfdutils/dfd2vk.inl
     DEPENDS ${makedfd2vk_input}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generating DFD/VkFormat switch body"
@@ -136,10 +163,40 @@ add_custom_target(makedfd2vk
     SOURCES ${makedfd2vk_input}
 )
 
+list(APPEND makevk2gl_input
+    ${KTX_SPECIFICATION}/generate_format_switches.rb
+    ${KTX_SPECIFICATION}/formats.json)
+list(APPEND makevk2gl_output
+    "${PROJECT_SOURCE_DIR}/lib/vkFormat2glFormat.inl"
+    "${PROJECT_SOURCE_DIR}/lib/vkFormat2glInternalFormat.inl"
+    "${PROJECT_SOURCE_DIR}/lib/vkFormat2glType.inl")
+# Until we have D3D or Metal loaders these outputs of
+# generate_format_switches.rb are unneeded.
+list(APPEND makevk2gl_extraneous_files
+    "${PROJECT_SOURCE_DIR}/lib/vkFormat2dxgiFormat.inl"
+    "${PROJECT_SOURCE_DIR}/lib/vkFormat2mtlFormat.inl"
+)
+
+add_custom_command(
+    OUTPUT ${makevk2gl_output}
+    COMMAND "${RUBY_EXECUTABLE}" ${KTX_SPECIFICATION}/generate_format_switches.rb ${PROJECT_SOURCE_DIR}/lib
+    COMMAND ${CMAKE_COMMAND} -E rm -f ${makevk2gl_extraneous_files}
+    DEPENDS ${makevk2gl_input}
+    WORKING_DIRECTORY ${KTX_SPECIFICATION}
+    COMMENT "Generating VkFormat to OpenGL internal format, format and type switches"
+    VERBATIM
+)
+
+add_custom_target(makevk2gl
+    DEPENDS ${makevk2gl_output}
+    SOURCES ${makedvk2gl_input}
+)
+
 add_custom_target(mkvk SOURCES ${CMAKE_CURRENT_LIST_FILE})
 
 add_dependencies(mkvk
     mkvkformatfiles
     makevk2dfd
     makedfd2vk
+    makevk2gl
 )

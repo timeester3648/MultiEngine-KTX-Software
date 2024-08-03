@@ -1,12 +1,12 @@
-<!-- Copyright 2023, The Khronos Group Inc. -->
+<!-- Copyright 2024, The Khronos Group Inc. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.3.0-beta1
-### New Features in Version 4.3.0
+## Version 4.3.2
+### New Features in Version 4.3
 #### Command Line Tools Suite
 
-v4.3.0 contains a new suite of command line tools accessed via an umbrella `ktx` command.
+v4.3 contains a new suite of command line tools accessed via an umbrella `ktx` command.
 
 | Tool | Description | Equivalent old tool |
 | :--- | ----------- | ------------------- |
@@ -45,17 +45,27 @@ The command-line syntax and semantics differ from the old tools including, but n
 
 Please refer to the manual pages or use the `--help` command-line option for further details on the options available and associated semantics for each individual command.
 
+Thanks to @aqnuep and @VaderY of [RasterGrid](https://www.rastergrid.com/) for their excellent work on the new tool suite.
+
 #### Python Binding
-A Python binding for `libktx` has been added. Applications written in Python can now use `libktx` functions. Huge thanks to @ShukantPal. Please download the appropriate `pyktx` package from Releases as publishing to PyPI is not yet established.
+A Python binding for `libktx` has been added. Applications written in Python can now use `libktx` functions. The package can be installed via `pip install pyktx[==4.3.0]`. Huge thanks to @ShukantPal.
 
-### Changes
+### Notable Changes since v4.3.1
 
-* `libktx` has been made much more robust to errors KTX files.
+* The `ktx` tool suite and `libktx` have been made compliant with Revision 3 of the KTX v2 specification:
+  * typeSize for formats with _mPACKxx suffix has been fixed. It is now xx/8.
+  * YCbCr 2-plane 4:4:4 formats recently added to Vulkan have been prohibited.
+  * `A8B8G8R8_PACK32` and `R16G16_S10_5_NV` formats are now allowed.
+
+### Notable Changes in v4.3
+
+* `libktx` has been made much more robust to errors in KTX files.
 * `libktx` now validates checksums when present in a Zstd data stream.
 * `libktx` has two new error codes it can return: `KTX_DECOMPRESS_LENGTH_ERROR` and `KTX_DECOMPRESS_CHECKSUM_ERROR`.
 * All tools and `libktx` now correctly process on all platforms utf8 file names
 with multi-byte code-points. Previously such names did not work on Windows.
 * The Vulkan texture uploader can now optionally be used with an extenal memory allocator such as [VulkanMemoryAllocator](https://gpuopen.com/vulkan-memory-allocator/).
+
 
 ### Known Issues
 
@@ -68,6 +78,82 @@ with multi-byte code-points. Previously such names did not work on Windows.
 * UASTC RDO results differ from run to run unless multi-threading or RDO multi-threading is disabled. In `toktx` use `--threads 1` for the former or `--uastc_rdo_m` for the latter. As with the preceeding issue results are valid but level sizes will differ slightly. See [issue #151](https://github.com/BinomialLLC/basis_universal/issues/151) in the basis_universal repository.
 
 * Neither the Vulkan nor GL loaders support depth/stencil textures.
+
+
+### Changes since v4.3.1 (by part)
+### libktx
+
+* Flesh out support for VK\_FORMAT\_R16G16\_S10\_5\_NV. (#864) (42dfae5cf) (@MarkCallow)
+
+* Allow A8B8G8R8 formats. (#861) (5ac5cf126) (@MarkCallow)
+
+* Fix recreateBytesPlane0 and add test (#856) (83b6386df) (@MarkCallow)
+
+* Fix mPACKn formats (#858) (dacd9934e) (@aqnuep)
+
+* Prevent warning if VK\_NO\_PROTOTYPES is already defined (#855) (d2d63f0aa) (@jherico)
+
+### Tools
+
+* Allow A8B8G8R8 formats. (#861) (5ac5cf126) (@MarkCallow)
+
+* Fix mPACKn formats (#858) (dacd9934e) (@aqnuep)
+
+
+
+
+
+### Java Wrapper
+
+* Allow A8B8G8R8 formats. (#861) (5ac5cf126) (@MarkCallow)
+
+
+## Version 4.3.1
+
+
+
+### Changes since v4.3.0 (by part)
+
+
+### Tools
+
+* Fix lingering KTXwriterScParams metadata from encode/transcode inputs (#852) (d3010bdc8) (@aqnuep)
+
+
+
+
+
+
+
+
+## Version 4.3.0
+
+
+### Changes since v4.3.0-beta1 (by part)
+### libktx
+
+* Rename branch to match upstream. (aaba10479) (@MarkCallow)
+
+* Add option to enable mkvk targets (VkFormat-related file generation). (#840) (e77a5316f) (@MarkCallow)
+
+### Tools
+
+* Report error on excess filenames (#843) (c32d99a08) (@aqnuep)
+
+* Fix error message typo (#837) (7dedd7e60) (@aqnuep)
+
+* Fix creating 3D textures and add KTXwriterScParams support to transcode (#833) (01d220c36) (@aqnuep)
+
+* Move buffer size check to base class. (dab91cf8e) (@MarkCallow)
+
+
+
+
+
+
+
+
+## Version 4.3.0-beta1
 
 
 ### Changes since v4.3.0-alpha3 (by part)
