@@ -23,7 +23,7 @@
 
 #include "GL/glcorearb.h"
 #include "ktx.h"
-#include "../../lib/vkformat_enum.h"
+#include "../../lib/src/vkformat_enum.h"
 #include "argparser.h"
 #include "version.h"
 #include "image.hpp"
@@ -327,7 +327,7 @@ Create a KTX file from JPEG, PNG or netpbm format files.
  - Moved --alpha and --luminance to legacy.
 
 @section toktx_author AUTHOR
-    Mark Callow, Edgewise Consulting www.edgewise-consulting.com
+    Mark Callow, github.com/MarkCallow
 */
 
 #define QUOTE(x) #x
@@ -1103,7 +1103,7 @@ toktxApp::createImage(const targetImageSpec& target, ImageInput& in)
         }
     }
     image->setPrimaries((khr_df_primaries_e)target.format().primaries());
-    image->setOetf((khr_df_transfer_e)target.format().transfer());
+    image->setTransferFunction((khr_df_transfer_e)target.format().transfer());
 
     if (options.scale != 1.0f) {
         auto scaledWidth = image->getWidth() * options.scale;

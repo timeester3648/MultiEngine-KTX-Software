@@ -1,77 +1,53 @@
-<!-- Copyright 2024, The Khronos Group Inc. -->
+<!-- Copyright 2025, The Khronos Group Inc. -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 Release Notes
 =============
-## Version 4.3.2
-### New Features in Version 4.3
-#### Command Line Tools Suite
+## Version 4.4.2
+### Notice
+v4.4.2 is an emergency release that replaces v4.4.1 which has been withdrawn. It
+fixes the version number in the release assets. There are no other changes
+compared to v4.4.1.
 
-v4.3 contains a new suite of command line tools accessed via an umbrella `ktx` command.
+### Summary
 
-| Tool | Description | Equivalent old tool |
-| :--- | ----------- | ------------------- |
-| `ktx create` | Create a KTX2 file from various input files | `toktx` |
-| `ktx extract` | Export selected images from a KTX2 file | - |
-| `ktx encode` | Encode a KTX2 file to a Basis Universal format | `ktxsc` |
-| `ktx transcode` | Transcode a KTX2 file | - |
-| `ktx info` | Prints information about a KTX2 file | `ktxinfo` |
-| `ktx validate` | Validate a KTX2 file | `ktx2check` |
-| `ktx help` | Display help information about the ktx tools | - |
+* `ktxTexture2_DecodeAstc` now exposed in _libktx\_read_ on all platforms and in
+  the JS bindings.
+* `ktx info` can now show info about KTX v1 files. It and the underlying _libktx_
+  function now display GL type and format token names instead of hex values.
+* Many bugs and robustness issues have been fixed. Many of these address changes
+  in CI runner images and the latest compilers.
+* ASTC encoder updated to 5.3.0.
+* LodePNG updated to 20250506.
+* Building with Visual Studio 2019 is no longer supported.
 
-Equivalent old tools will be removed in a subsequent release soon.
+__The legacy tools will be removed in Release 4.5. Adjust your workflows accordingly.__
 
-Some features of the old tools are not currently available in the new equivalent.
+### New Features in v4.4.2
+#### libktx functions
 
-| Old Tool | New Tool | Missing Features |
-| :------: | :------: | ---------------- |
-| `toktx`  | `create` | JPEG and NBPM input and scaling/resizing of input images. |
-| `ktxsc`  | `encode` | ASTC encoding of a KTX2 file. This can be done in `create`. <br>Deflation of a KTX2 file with zlib or zstd.|
+* `ktxTexture2_DecodeAstc`, which decodes an ASTC format texture to an
+  uncompressed format, is now available in _libktx\_read_ on all platforms and in
+  both the _libktx_ and _libktx\_read_ JS bindings.
+* `ktxPrintKTX1InfoTextForStream`, which prints information about a KTX v1 file
+  and was previously internal, is now exposed.
 
+### Notable Fixes in v4.4.2
 
-The command-line syntax and semantics differ from the old tools including, but not limited to:
-
-* KTX 1.0 files are not supported by the new tools.
-
-* Words in multi-word option names are connected with `-` instead of `_`.
-* Individual option names may differ between the old and new tools.
-* The `ktx validate` tool may be stricter than `ktx2check` or otherwise differ in behavior, as the new tool enforces all rules of the KTX 2.0 specification. In addition, all new tools that accept KTX 2.0 files as input will be validated in a similar fashion as they would be with the `ktx validate` tool and will fail on the first specification rule violation, if there is one. It also has the option to output the validation results in human readable text format or in JSON format (both formatted and minified options are available), as controlled by the `--format` command-line option.
-* The `ktx validate` tool also supports validating KTX 2.0 files against the additional restrictions defined by the _KHR\_texture\_basisu_ extension. Use the `--gltf-basisu` command-line option to verify glTF and WebGL compatibility.
-* The new `ktx info` tool produces a unified and complete output of all metadata in KTX 2.0 files and can provide output in human readable text format or in JSON format (both formatted and minified options are available), as controlled by the `--format` command-line option.
-* The source repository also includes the JSON schemas that the JSON outputs of the `ktx info` and `ktx validate` tools comply to.
-* The `ktx create` tool takes an explicit Vulkan format argument (`--format`) instead of inferring the format based on the provided input files as `toktx`, and thus doesn't perform any implicit color-space conversions except gamma 2.2 to sRGB. Use the `--assign-oetf`, `--convert-oetf`, `--assign-primaries`, and the new `--convert-primaries` for fine grained control over color-space interpretation and conversion.
-* The `ktx create` tool does not support resizing or scaling like `toktx`, and, in general, does not perform any image transformations except the optional color-space conversion and mipmap generation options. Users should resize input images to the appropriate resolution before converting them to KTX 2.0 files.
-* The `ktx create` and `ktx extract` tools consume and produce, respectively, image file formats that best suit the used Vulkan format. In general, barring special cases, 8-bit and 16-bit normalized integer formats are imported from and exported to PNG files, while integer and floating point formats are imported from and exported to EXR files based on predefined rules. This may be extended in the future using additional command line options and in response to support for other image file formats.
-* The new tools and updated `libktx` support ZLIB supercompression besides the BasisLZ and Zstd supercompression schemes supported previously.
-
-Please refer to the manual pages or use the `--help` command-line option for further details on the options available and associated semantics for each individual command.
-
-Thanks to @aqnuep and @VaderY of [RasterGrid](https://www.rastergrid.com/) for their excellent work on the new tool suite.
-
-#### Python Binding
-A Python binding for `libktx` has been added. Applications written in Python can now use `libktx` functions. The package can be installed via `pip install pyktx[==4.3.0]`. Huge thanks to @ShukantPal.
-
-### Notable Changes since v4.3.1
-
-* The `ktx` tool suite and `libktx` have been made compliant with Revision 3 of the KTX v2 specification:
-  * typeSize for formats with _mPACKxx suffix has been fixed. It is now xx/8.
-  * YCbCr 2-plane 4:4:4 formats recently added to Vulkan have been prohibited.
-  * `A8B8G8R8_PACK32` and `R16G16_S10_5_NV` formats are now allowed.
-
-### Notable Changes in v4.3
-
-* `libktx` has been made much more robust to errors in KTX files.
-* `libktx` now validates checksums when present in a Zstd data stream.
-* `libktx` has two new error codes it can return: `KTX_DECOMPRESS_LENGTH_ERROR` and `KTX_DECOMPRESS_CHECKSUM_ERROR`.
-* All tools and `libktx` now correctly process on all platforms utf8 file names
-with multi-byte code-points. Previously such names did not work on Windows.
-* The Vulkan texture uploader can now optionally be used with an extenal memory allocator such as [VulkanMemoryAllocator](https://gpuopen.com/vulkan-memory-allocator/).
+* A bug in mipmap generation in `ktx create` that led to sRGB images being
+  resampled without first decoding to linear has been fixed. If you have affected
+  KTX files you should regenerate your textures from their source images.
+* _libktx\_read_ no longer includes the ASTC encode functions, only the decode
+  functions.
+* A bug that caused a hang in `ktx create`, when the source image is an RGB PNG
+  file with an sBIT chunk and an alpha component is being added to the texture
+  being created, has been fixed.
 
 
 ### Known Issues
 
-* Some image bits in output files encoded to ASTC, ETC1S/Basis-LZ or UASTC on arm64 devices may differ from those encoded from the same input images on x86_64 devices. The differences will not be human visible and will only show up in bit-exact comparisons. 
+* Files deflated with zlib using *libktx* compiled with GCC and run on x86\_64 may not be bit-identical with those using *libktx* compiled with GCC and run on arm64.
 
-* Users making Basis Universal encoded or GPU block compressed textures for WebGL must be aware of WebGL restrictions with regard to texture size and may need to resize input images appropriately before using the `ktx create` tool, or use the `--resize` feature of the old `toktx` tool to produce an appropriately sized texture. In general, the dimensions of block compressed textures must be a multiple of the block size in WebGL and for WebGL 1.0 textures must have power-of-two dimensions. Additional portability restrictions apply for glTF per the _KHR\_texture\_basisu_ extension which can be verified using the `--gltf-basisu` command-line option of the new `ktx validate` tool.
+* Users making Basis Universal encoded or GPU block compressed textures for WebGL must be aware of WebGL restrictions with regard to texture size and may need to resize input images appropriately before using the `ktx create` tool, or use the `--resize` feature to produce an appropriately sized texture. In general, the dimensions of block compressed textures must be a multiple of the block size in WebGL and for WebGL 1.0 textures must have power-of-two dimensions. Additional portability restrictions apply for glTF per the _KHR\_texture\_basisu_ extension which can be verified using the `--gltf-basisu` command-line option of `ktx validate`.
 
 * Basis Universal encoding results (both ETC1S/LZ and UASTC) are non-deterministic across platforms. Results are valid but level sizes and data will differ slightly.  See [issue #60](https://github.com/BinomialLLC/basis_universal/issues/60) in the basis_universal repository.
 
@@ -79,306 +55,155 @@ with multi-byte code-points. Previously such names did not work on Windows.
 
 * Neither the Vulkan nor GL loaders support depth/stencil textures.
 
-
-### Changes since v4.3.1 (by part)
+### Changes since v4.4.0 (by part)
 ### libktx
 
-* Flesh out support for VK\_FORMAT\_R16G16\_S10\_5\_NV. (#864) (42dfae5cf) (@MarkCallow)
+* 4.4.1 release prep (#1063) (0b10eb17e) (@MarkCallow)
 
-* Allow A8B8G8R8 formats. (#861) (5ac5cf126) (@MarkCallow)
+* Add v1 support to ktx info (#1060) (3cd9e3447) (@MarkCallow)
 
-* Fix recreateBytesPlane0 and add test (#856) (83b6386df) (@MarkCallow)
+* Remove mentions of retired edgewise-consulting.com. (#1058) (0306d6a61) (@MarkCallow)
 
-* Fix mPACKn formats (#858) (dacd9934e) (@aqnuep)
+* Export ktxTexture2\_DecodeAstc in JS bindings (#1034) (64a69009b) (@MarkCallow)
 
-* Prevent warning if VK\_NO\_PROTOTYPES is already defined (#855) (d2d63f0aa) (@jherico)
+* Restore rotted bits: update vcpkg caching and pyktx to latest Python (#1033) (f753fcabe) (@MarkCallow)
+
+* Fix for Emscripten 4.0.9 (#1026) (1a983763c) (@MarkCallow)
+
+* Fix memory leaks. (#1007) (504b96247) (@MarkCallow)
 
 ### Tools
 
-* Allow A8B8G8R8 formats. (#861) (5ac5cf126) (@MarkCallow)
+* Add v1 support to ktx info (#1060) (3cd9e3447) (@MarkCallow)
 
-* Fix mPACKn formats (#858) (dacd9934e) (@aqnuep)
+* Remove mentions of retired edgewise-consulting.com. (#1058) (0306d6a61) (@MarkCallow)
 
+* Document that --generated-mipmap can't be used with --raw. (#1057) (1d7d44465) (@MarkCallow)
 
+* Update fmt to latest release (v11.2) (#1056) (f5654c2b0) (@MarkCallow)
 
+* Fix hang when adding alpha and PNG input has sBIT chunk. (#1054) (d9a0c2bd5) (@MarkCallow)
 
+* Set color space in input image prior to resample. (#1051) (1daca0cdc) (@MarkCallow)
 
-### Java Wrapper
+* Use relative rpaths to find installed library on macOS (#1046) (d47320c24) (@MarkCallow)
 
-* Allow A8B8G8R8 formats. (#861) (5ac5cf126) (@MarkCallow)
+* Shut up warnings clang with libstdc++ emits about non-virtual destructors (#1012) (fbb5412f5) (@DanielGibson)
 
+* Fix CLI error handling for --normalize. (#1016) (17d206239) (@MarkCallow)
 
-## Version 4.3.1
+* Update LodePNG to version 20241228, (#1015) (6d1fc82ca) (@MarkCallow)
 
+### JS Bindings
 
+* Export ktxTexture2\_DecodeAstc in JS bindings (#1034) (64a69009b) (@MarkCallow)
 
-### Changes since v4.3.0 (by part)
+* Fix for Emscripten 4.0.9 (#1026) (1a983763c) (@MarkCallow)
 
+### Java Bindings
 
-### Tools
+* Use relative rpaths to find installed library on macOS (#1046) (d47320c24) (@MarkCallow)
 
-* Fix lingering KTXwriterScParams metadata from encode/transcode inputs (#852) (d3010bdc8) (@aqnuep)
+### Python Bindings
 
+* Restore rotted bits: update vcpkg caching and pyktx to latest Python (#1033) (f753fcabe) (@MarkCallow)
 
+* Add option to use virtual environment for Python. (#1029) (b167e968c) (@MarkCallow)
 
+* Bump setuptools from 70.0.0 to 78.1.1 in /interface/python\_binding (#1025) (94d0c3a81) (@dependabot[bot])
 
+* Fix python deprecation warning. (#1018) (dac48df00) (@MarkCallow)
 
+### External Package Dependencies
 
+* Remove mentions of retired edgewise-consulting.com. (#1058) (0306d6a61) (@MarkCallow)
 
+* Update fmt to latest release (v11.2) (#1056) (f5654c2b0) (@MarkCallow)
 
-## Version 4.3.0
+* Migrate loadtest apps to SDL3 (#1055) (443e12238) (@MarkCallow)
 
+* Update ASTC encoder to 5.3.0 (#1036) (f6f0b9a1d) (@MarkCallow)
 
-### Changes since v4.3.0-beta1 (by part)
-### libktx
+* Update lodepng to version 20250506 (#1035) (f9c73388a) (@MarkCallow)
 
-* Rename branch to match upstream. (aaba10479) (@MarkCallow)
+* GCC14/C++23 compatibility fix (#1014) (f3f6b3b69) (@alexge50)
 
-* Add option to enable mkvk targets (VkFormat-related file generation). (#840) (e77a5316f) (@MarkCallow)
+* Update LodePNG to version 20241228, (#1015) (6d1fc82ca) (@MarkCallow)
 
-### Tools
+### Tests
 
-* Report error on excess filenames (#843) (c32d99a08) (@aqnuep)
+* Add v1 support to ktx info (#1060) (3cd9e3447) (@MarkCallow)
 
-* Fix error message typo (#837) (7dedd7e60) (@aqnuep)
+* Remove mentions of retired edgewise-consulting.com. (#1058) (0306d6a61) (@MarkCallow)
 
-* Fix creating 3D textures and add KTXwriterScParams support to transcode (#833) (01d220c36) (@aqnuep)
+* Update CTS ref to merged tests. (65b0031d7) (@MarkCallow)
 
-* Move buffer size check to base class. (dab91cf8e) (@MarkCallow)
+* Document that --generated-mipmap can't be used with --raw. (#1057) (1d7d44465) (@MarkCallow)
 
+* Update fmt to latest release (v11.2) (#1056) (f5654c2b0) (@MarkCallow)
 
+* Migrate loadtest apps to SDL3 (#1055) (443e12238) (@MarkCallow)
 
+* Fix hang when adding alpha and PNG input has sBIT chunk. (#1054) (d9a0c2bd5) (@MarkCallow)
 
+* Set color space in input image prior to resample. (#1051) (1daca0cdc) (@MarkCallow)
 
+* Use relative rpaths to find installed library on macOS (#1046) (d47320c24) (@MarkCallow)
 
+* Clarify platforms where unit tests not supported. (#1040) (f9f36940b) (@MarkCallow)
 
+* Minor build fixes (#1039) (8dfb89507) (@MarkCallow)
 
-## Version 4.3.0-beta1
+* Update for Vulkan SDK 1.4.313. (#1037) (d72218c6a) (@MarkCallow)
 
+* Export ktxTexture2\_DecodeAstc in JS bindings (#1034) (64a69009b) (@MarkCallow)
 
-### Changes since v4.3.0-alpha3 (by part)
-### libktx
+* Restore rotted bits: update vcpkg caching and pyktx to latest Python (#1033) (f753fcabe) (@MarkCallow)
 
-* git subrepo push lib/dfdutils (ab9c27707) (@MarkCallow)
+* Fix handling of multiple files with spaces in names. (#1030) (b2f4da2aa) (@MarkCallow)
 
-* Reenable build of loadtest apps on Windows arm64 CI (#802) (6c131f75f) (@MarkCallow)
+* Update CTS ref for merged test updates. (b9218bc50) (@MarkCallow)
 
-* Utf-8/unicode support in legacy tools and lib. (#800) (1c5dc9cf6) (@MarkCallow)
+* Fix CLI error handling for --normalize. (#1016) (17d206239) (@MarkCallow)
 
-* Do not redefine NOMINMAX (#801) (6dbb24643) (@corporateshark)
+* Linux and MacOS workflows (#1004) (520dc8f89) (@MathiasMagnus)
 
-* libktx: update ktxTexture2\_setImageFromStream to allow setting the entire level's data in one call (#794) (88fc7a6e9) (@AlexRouSg)
 
-* Update dfdutils-included vulkan\_core.h. (#783) (9c223d950) (@MarkCallow)
 
-* Support for A8 and A1B5G5R5 formats (#785) (eeac6206c) (@aqnuep)
+### Build Scripts and CMake files
 
-* Major non-content documentation fixes. (#773) (e6a6a3be9) (@MarkCallow)
+* Add force-fetch-provoking-tag-annotation workaround (e5c085b51) (@MarkCallow)
 
-* Fix vendor-specific/tied memory property flag detection (#771) (a10021758) (@toomuchvoltage)
+* Add options. (16a24e087) (@MarkCallow)
 
-* Return KTX\_NOT\_FOUND when a GPU proc is not found. (#770) (aeca5e695) (@MarkCallow)
+* Add v1 support to ktx info (#1060) (3cd9e3447) (@MarkCallow)
 
-* Support for external allocators: (#748) (6856fdb0d) (@toomuchvoltage)
+* Migrate loadtest apps to SDL3 (#1055) (443e12238) (@MarkCallow)
 
-* Fix ktx\_strncasecmp (#741) (1ae04f897) (@VaderY)
+* Fix hang when adding alpha and PNG input has sBIT chunk. (#1054) (d9a0c2bd5) (@MarkCallow)
 
-* Use correct counter for indexing sample. (#739) (3153e94e8) (@MarkCallow)
+* Use relative rpaths to find installed library on macOS (#1046) (d47320c24) (@MarkCallow)
 
-### Tools
+* Clarify platforms where unit tests not supported. (#1040) (f9f36940b) (@MarkCallow)
 
-* Disallow ASTC options when format is not ASTC (#809) (d3ef5ed8b) (@aqnuep)
+* Minor build fixes (#1039) (8dfb89507) (@MarkCallow)
 
-* Remove unnecessary nullptr checks. (#807) (072a4eb25) (@MarkCallow)
+* Update for Vulkan SDK 1.4.313. (#1037) (d72218c6a) (@MarkCallow)
 
-* Set tools and tests rpath on Linux. (#804) (928612a71) (@MarkCallow)
+* Export ktxTexture2\_DecodeAstc in JS bindings (#1034) (64a69009b) (@MarkCallow)
 
-* Utf-8/unicode support in legacy tools and lib. (#800) (1c5dc9cf6) (@MarkCallow)
+* Restore rotted bits: update vcpkg caching and pyktx to latest Python (#1033) (f753fcabe) (@MarkCallow)
 
-* Support building of loadtest apps with locally installed dependencies (#799) (84ee59dd2) (@MarkCallow)
+* Add option to use virtual environment for Python. (#1029) (b167e968c) (@MarkCallow)
 
-* Update dfdutils-included vulkan\_core.h. (#783) (9c223d950) (@MarkCallow)
+* Fix: Install graphviz if FEATURE\_DOCS ON (#1028) (e69101917) (@MarkCallow)
 
-* Add UTF-8 filename support on Windows to ktxtools (#788) (7b6eab5dc) (@aqnuep)
+* Fix for Emscripten 4.0.9 (#1026) (1a983763c) (@MarkCallow)
 
-* Support for A8 and A1B5G5R5 formats (#785) (eeac6206c) (@aqnuep)
+* Enable use of Ninja Multi-Config generator for Linux builds (#1017) (161878025) (@MarkCallow)
 
-* KTXwriterScParams support (#779) (f8691ff05) (@aqnuep)
+* Update LodePNG to version 20241228, (#1015) (6d1fc82ca) (@MarkCallow)
 
-* Use \-- in doc. to get -- not n-dash in output. (#767) (724790094) (@MarkCallow)
+* Fix issues in CMakeLists.txt (see #996) (#998) (c033ac8fa) (@DanielGibson)
 
-* Document convert\_primaries option in toktx. (#765) (3049f5b5e) (@MarkCallow)
-
-* Do target\_type changes only in toktx (#757) (2cf053c19) (@MarkCallow)
-
-* Add support for fewer components in input files (#755) (adcccf152) (@aqnuep)
-
-* Fix --convert-primaries (#753) (e437ec45f) (@aqnuep)
-
-* Fix legacy app input from pipes on Windows. (#749) (3e7fd0af6) (@MarkCallow)
-
-* Improve output determinism and add internal ktxdiff tool for comparing test outputs (#745) (7f67af7e0) (@VaderY)
-
-* Add KTX\_WERROR config option (#746) (dab32db90) (@MarkCallow)
-
-* Fix incorrect index calculations in image conversions (#735) (682f456de) (@VaderY)
-
-* Color-space and documentation related improvements for ktx create (#732) (8b12216f7) (@VaderY)
-
-
-
-
-
-### Java Wrapper
-
-* Update dfdutils-included vulkan\_core.h. (#783) (9c223d950) (@MarkCallow)
-
-
-
-
-## Version 4.3.0-alpha3
-
-
-### Changes since v4.3.0-alpha2 (by part)
-### libktx
-
-* Improve documentation (#730) (69b1685a) (@MarkCallow)
-
-  - Rework navigation among the multiple Doxygen projects for much easier use.
-  - Rename new ktx tool man pages from `ktxtools\_*` to `ktx\_*`
-  - Add `ktx` tool mainpage based on RELEASE\_NOTES info.
-  - Make minor formatting fix in `ktx` man page.
-  - Update acknowledgements.
-  - Remove outdated TODO.md.
-  - Add script to do `$Date$` keyword smudging. Use it in CI and reference it from
-    README.md to avoid repetition of list of files needing smudging.
-  - Add `$Date$` keywords to some docs.
-  - Remove `$Date$` and #ident keywords that are no longer needed or used.
-  - Document the parts of `khr\_df.h` relevant to the libktx API.
-
-* Implement the extended scope and further improvements for ktxtools (#722) (2189c54e) (@VaderY)
-
-  - tools: Implement stdout support
-  - tools: Implement stdin support
-  - tools: Implement 4:2:2 support
-  - tools: Implement support for 10X6 and 10X4 formats
-  - tools: Implement support for B10G11R11\_UFLOAT and E5B9G9R9\_UFLOAT formats
-  - tools: Complete support for Depth-Stencil formats
-  - tools: Improvements, cleanup and bug fixes
-  - extract: Implement fragment URI support
-  - extract: Implement 4:2:2 sub-sampling
-  - validate: Fix and extend padding byte validation checks
-  - cts: Add support for stdin/stdout test cases (including binary IO)
-  - cts: Add tests to cover new features and capabilities
-  - cts: Extend existing tests to improve coverage
-  - cts: Test runner now deletes matching output files (this enables easy packaging of mismatching files)
-  - cts: Added a new cli arg to the runner script: --keep-matching-outputs to prevent the deletion of matching output files
-  - dfdUtils: Implement 4:2:2 support
-  - dfdUtils: Implement support for 10X6 and 10X4 formats
-  - imageio: Fix stdin support
-  - ktx: Add stringToVkFormat to mkvkformatfiles
-  - ktx: Implement 3D BC support (ASTC 3D Blocks)
-  - ktx: Implement 4:2:2 support
-  - ktx: Complete support for Depth-Stencil formats
-  - ktx: Improve interpretDFD
-  - ktx: Improvements, cleanup and bug fixes
-  - cmake: Add CMake generator expression for output directory on Mac
-
-### Tools
-
-* Improve documentation (#730) (69b1685a) (@MarkCallow)
-
-  - Rework navigation among the multiple Doxygen projects for much easier use.
-  - Rename new ktx tool man pages from `ktxtools\_*` to `ktx\_*`
-  - Add `ktx` tool mainpage based on RELEASE\_NOTES info.
-  - Make minor formatting fix in `ktx` man page.
-  - Update acknowledgements.
-  - Remove outdated TODO.md.
-  - Add script to do `$Date$` keyword smudging. Use it in CI and reference it from
-    README.md to avoid repetition of list of files needing smudging.
-  - Add `$Date$` keywords to some docs.
-  - Remove `$Date$` and #ident keywords that are no longer needed or used.
-  - Document the parts of `khr\_df.h` relevant to the libktx API.
-
-* Implement the extended scope and further improvements for ktxtools (#722) (2189c54e) (@VaderY)
-
-  - tools: Implement stdout support
-  - tools: Implement stdin support
-  - tools: Implement 4:2:2 support
-  - tools: Implement support for 10X6 and 10X4 formats
-  - tools: Implement support for B10G11R11\_UFLOAT and E5B9G9R9\_UFLOAT formats
-  - tools: Complete support for Depth-Stencil formats
-  - tools: Improvements, cleanup and bug fixes
-  - extract: Implement fragment URI support
-  - extract: Implement 4:2:2 sub-sampling
-  - validate: Fix and extend padding byte validation checks
-  - cts: Add support for stdin/stdout test cases (including binary IO)
-  - cts: Add tests to cover new features and capabilities
-  - cts: Extend existing tests to improve coverage
-  - cts: Test runner now deletes matching output files (this enables easy packaging of mismatching files)
-  - cts: Added a new cli arg to the runner script: --keep-matching-outputs to prevent the deletion of matching output files
-  - dfdUtils: Implement 4:2:2 support
-  - dfdUtils: Implement support for 10X6 and 10X4 formats
-  - imageio: Fix stdin support
-  - ktx: Add stringToVkFormat to mkvkformatfiles
-  - ktx: Implement 3D BC support (ASTC 3D Blocks)
-  - ktx: Implement 4:2:2 support
-  - ktx: Complete support for Depth-Stencil formats
-  - ktx: Improve interpretDFD
-  - ktx: Improvements, cleanup and bug fixes
-  - cmake: Add CMake generator expression for output directory on Mac
-
-
-
-### JS Wrappers
-
-* Improve documentation (#730) (69b1685a) (@MarkCallow)
-
-  - Rework navigation among the multiple Doxygen projects for much easier use.
-  - Rename new ktx tool man pages from `ktxtools\_*` to `ktx\_*`
-  - Add `ktx` tool mainpage based on RELEASE\_NOTES info.
-  - Make minor formatting fix in `ktx` man page.
-  - Update acknowledgements.
-  - Remove outdated TODO.md.
-  - Add script to do `$Date$` keyword smudging. Use it in CI and reference it from
-    README.md to avoid repetition of list of files needing smudging.
-  - Add `$Date$` keywords to some docs.
-  - Remove `$Date$` and #ident keywords that are no longer needed or used.
-  - Document the parts of `khr\_df.h` relevant to the libktx API.
-
-
-
-
-## Version 4.3.0-alpha2
-
-
-### Changes since v4.3.0-alpha1 (by part)
-### libktx
-
-* Fix alignment, removes tabs (8e4ee5d5) (@abbaswasim)
-
-* Fix memory leak of input\_image in ktxTexture2\_CompressAstcEx (04bdffe0) (@abbaswasim)
-
-
-## Version 4.3.0-alpha1
-
-### Changes since v4.2.1 (by part)
-### libktx
-
-* Merge ktxtools into main (#714) (a6abf2ff) (@VaderY)
-
-### Tools
-
-* Merge ktxtools into main (#714) (a6abf2ff) (@VaderY)
-
-
-
-### JS Wrappers
-
-* Merge ktxtools into main (#714) (a6abf2ff) (@VaderY)
-
-### Java Wrapper
-
-* Merge ktxtools into main (#714) (a6abf2ff) (@VaderY)
-
-
+* Linux and MacOS workflows (#1004) (520dc8f89) (@MathiasMagnus)

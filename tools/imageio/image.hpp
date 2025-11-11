@@ -34,8 +34,14 @@
 #endif
 #include "imageio_utility.h"
 #include "unused.h"
+#if defined(__GNUC__) && !defined(__clang__)
+  #pragma GCC diagnostic ignored "-Wunused-value"
+#endif
 #include "encoder/basisu_resampler.h"
 #include "encoder/basisu_resampler_filters.h"
+#if defined(__GCC__) && !defined(__clang__)
+  #pragma GCC diagnostic pop
+#endif
 
 // cclamp to avoid conflict in toktx.cc with clamp template defined in scApp.
 template <typename T> inline T cclamp(T value, T low, T high) {
@@ -685,8 +691,8 @@ class Image {
     uint32_t getWidth() const { return width; }
     uint32_t getHeight() const { return height; }
     uint32_t getPixelCount() const { return width * height; }
-    khr_df_transfer_e getOetf() const { return oetf; }
-    void setOetf(khr_df_transfer_e noetf) { this->oetf = noetf; }
+    khr_df_transfer_e getTransferFunction() const { return transferFunction; }
+    void setTransferFunction(khr_df_transfer_e tf) { transferFunction = tf; }
     khr_df_primaries_e getPrimaries() const { return primaries; }
     void setPrimaries(khr_df_primaries_e nprimaries) {
         this->primaries = nprimaries;
@@ -729,15 +735,16 @@ class Image {
     virtual Image& copyToRG(Image&, std::string_view swizzle) = 0;
     virtual Image& copyToRGB(Image&, std::string_view swizzle) = 0;
     virtual Image& copyToRGBA(Image&, std::string_view swizzle) = 0;
+    virtual Image& premultiplyAlpha() = 0;
 
   protected:
     Image() : Image(0, 0) { }
     Image(uint32_t w, uint32_t h)
-            : width(w), height(h), oetf(KHR_DF_TRANSFER_UNSPECIFIED),
+            : width(w), height(h), transferFunction(KHR_DF_TRANSFER_UNSPECIFIED),
               primaries(KHR_DF_PRIMARIES_BT709) { }
 
     uint32_t width, height;  // In pixels
-    khr_df_transfer_e oetf;
+    khr_df_transfer_e transferFunction;
     khr_df_primaries_e primaries;
 };
 
@@ -1113,7 +1120,7 @@ class ImageT : public Image {
         using namespace basisu;
 
         auto target = std::make_unique<ImageT<componentType, componentCount>>(targetWidth, targetHeight);
-        target->setOetf(oetf);
+        target->setTransferFunction(transferFunction);
         target->setPrimaries(primaries);
 
         const auto sourceWidth = width;
@@ -1149,7 +1156,7 @@ class ImageT : public Image {
 
         const TransferFunctionSRGB tfSRGB;
         const TransferFunctionLinear tfLinear;
-        const TransferFunction& tf = oetf == KHR_DF_TRANSFER_SRGB ?
+        const TransferFunction& tf = transferFunction == KHR_DF_TRANSFER_SRGB ?
                 static_cast<const TransferFunction&>(tfSRGB) :
                 static_cast<const TransferFunction&>(tfLinear);
 
@@ -1290,7 +1297,7 @@ class ImageT : public Image {
         assert(getComponentSize() == dst.getComponentSize());
         assert(width == dst.getWidth() && height == dst.getHeight());
 
-        dst.setOetf(oetf);
+        dst.setTransferFunction(transferFunction);
         dst.setPrimaries(primaries);
         for (size_t i = 0; i < getPixelCount(); i++) {
             uint32_t c;
@@ -1313,6 +1320,36 @@ class ImageT : public Image {
     virtual ImageT& copyToRG(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 2>&)dst, swizzle); }
     virtual ImageT& copyToRGB(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 3>&)dst, swizzle); }
     virtual ImageT& copyToRGBA(Image& dst, std::string_view swizzle) override { return copyTo((ImageT<componentType, 4>&)dst, swizzle); }
+
+    virtual ImageT& premultiplyAlpha() override {
+        if(getComponentCount() < 4) {
+            return *this; // Nothing to do (no alpha channel)
+        }
+
+        const TransferFunctionSRGB tfSRGB;
+        const TransferFunctionLinear tfLinear;
+        const TransferFunction& tf = transferFunction == KHR_DF_TRANSFER_SRGB ?
+                static_cast<const TransferFunction&>(tfSRGB) :
+                static_cast<const TransferFunction&>(tfLinear);
+
+        uint32_t pixelCount = getPixelCount();
+        for (uint32_t i = 0; i < pixelCount; ++i) {
+            Color& c = pixels[i];
+            float alpha = c[3] * Color::rcpOne();
+            for (uint32_t comp = 0; comp < 3; comp++) {
+                float linearColor = tf.decode(c[comp] * Color::rcpOne());
+                linearColor *= alpha;
+                float srgbColor = tf.encode(linearColor);
+                if (std::is_floating_point_v<componentType>) {
+                    c.set(comp, static_cast<componentType>(srgbColor));
+                } else {
+                    componentType outValue = static_cast<componentType>(srgbColor * static_cast<float>(Color::one()) + 0.5f);
+                    c.set(comp, outValue);
+                }
+            }
+        }
+        return *this;
+    }
 
   protected:
     componentType swizzlePixel(const Color& srcPixel, char swizzle) {

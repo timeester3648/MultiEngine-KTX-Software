@@ -58,8 +58,7 @@ from 0.89 bits/pixel up to 8 bits/pixel.
 Release build binaries for the `astcenc` stable releases are provided in the
 [GitHub Releases page][3].
 
-* Change log: [4.x series](./Docs/ChangeLog-4x.md)
-* Change log: [3.x series](./Docs/ChangeLog-3x.md)
+* Change log: [5.x series](./Docs/ChangeLog-5x.md)
 
 Binaries are provided for 64-bit builds on Windows, macOS, and Linux.
 
@@ -78,9 +77,15 @@ The x86-64 SSE2 builds will work on all x86-64 machines, but it is the slowest
 of the three. The other two require extended CPU instruction set support which
 is not universally available, but each step gains ~15% more performance.
 
-For Arm, if binaries are available, we provide:
+For Arm we provide, in order of increasing performance:
 
+* `astcenc-sve_256` - uses 256-bit SVE
+* `astcenc-sve_128` - uses 128-bit SVE
 * `astcenc-neon` - uses NEON
+
+Note: The Arm Scalable Vector Extensions (SVE) allow CPUs to have a variable
+vector length. The astcenc implementation is not written in a length-agnostic
+style and requires the binary to match the vector length on the host CPU.
 
 ## macOS
 
@@ -99,12 +104,12 @@ to be a stable branch for the latest major release series, but as it is used
 for ongoing development expect it to have some volatility. We recommend using
 the latest stable release tag for production development.
 
-The `3.x` branch is a stable branch for the 3.x release series. It is no longer
-under active development, but is a supported branch that continues to get
-backported bug fixes.
+The `4.x` branch is a stable branch for the older 4.x release series. It is no
+longer under active development, but is a supported branch that continues to
+get back-ported bug fixes.
 
-The `1.x` and `2.x` branches are stable branches for older releases. They are
-no longer under active development or getting bug fixes.
+The `1.x`, `2.x`, and `3.x` branches are stable branches for older releases.
+They are no longer under active development or getting bug fixes.
 
 Any other branches you might find are development branches for new features or
 optimizations, so might be interesting to play with but should be considered
@@ -236,10 +241,10 @@ or general mobile graphics development or technology please submit them on the
 
 - - -
 
-_Copyright © 2013-2024, Arm Limited and contributors. All rights reserved._
+_Copyright © 2013-2025, Arm Limited and contributors. All rights reserved._
 
 [1]: ./Docs/FormatOverview.md
-[2]: https://www.khronos.org/registry/DataFormat/specs/1.3/dataformat.1.3.html#ASTC
+[2]: https://www.khronos.org/registry/DataFormat/specs/1.4/dataformat.1.4.html#ASTC
 [3]: https://github.com/ARM-software/astc-encoder/releases
 [4]: https://community.arm.com/support-forums/f/graphics-gaming-and-vr-forum/
 [5]: https://developer.arm.com/documentation/102162/latest/?lang=en

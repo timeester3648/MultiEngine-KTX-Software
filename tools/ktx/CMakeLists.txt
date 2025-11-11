@@ -53,7 +53,7 @@ target_include_directories(
     ktxtools
     SYSTEM
 PRIVATE
-    ${PROJECT_SOURCE_DIR}/lib
+    ${PROJECT_SOURCE_DIR}/lib/src
     ${PROJECT_SOURCE_DIR}/other_include
 )
 
@@ -63,6 +63,7 @@ PRIVATE
     imageio
     objUtil
     ktx
+    basisu_encoder
     ${ASTCENC_LIB_TARGET}
     $<IF:$<BOOL:${WIN32}>,Pathcch,> # For PathCchRemoveFileSpec on Windows
     fmt::fmt
@@ -80,6 +81,19 @@ target_compile_features(
 PUBLIC
     cxx_std_17
 )
+
+if (KTX_DEVELOPER_FEATURE_PATCH)
+    target_sources(
+        ktxtools
+    PRIVATE
+        command_patch.cpp
+    )
+    target_compile_definitions(
+        ktxtools
+    PRIVATE
+        KTX_DEVELOPER_FEATURE_PATCH=1
+    )
+endif()
 
 set_tool_properties(ktxtools)
 set_code_sign(ktxtools)

@@ -13,7 +13,7 @@
  *
  * @brief Tests of internal API functions.
  *
- * @author Mark Callow, Edgewise Consulting
+ * @author Mark Callow, github.com/MarkCallow
  */
 
 #if defined(_WIN32)
@@ -690,18 +690,86 @@ protected:
 
 extern "C" const char* vkFormatString(VkFormat format);
 
-TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlane0) {
+TEST_F(DFDVkFormatListTest, ReconstructDFDBytesPlanes) {
+
+    uint32_t* dfd;
+    uint32_t* bdb;
+    uint32_t origBytesPlane03, origBytesPlane47;
 
     for (uint32_t i = 0; i < sizeof(formats) / sizeof(VkFormat); i++) {
-        uint32_t* dfd = vk2dfd(formats[i]);
+        dfd = vk2dfd(formats[i]);
         ASSERT_TRUE(dfd != NULL) << "vk2dfd failed to produce DFD for "
                                  << vkFormatString(formats[i]);
-        uint32_t* bdfd = dfd + 1;
-        uint32_t origBytesPlane0 = KHR_DFDVAL(bdfd, BYTESPLANE0);
-        KHR_DFDSETVAL(bdfd, BYTESPLANE0, 0);
-        uint32_t reconstructedBytesPlane0 = reconstructDFDBytesPlane0FromSamples(dfd);
-        EXPECT_EQ(origBytesPlane0, reconstructedBytesPlane0);
+        bdb = dfd + 1;
+        // There are 4 bytesPlane values in one word. Capture all at once.
+        origBytesPlane03 = bdb[KHR_DF_WORD_BYTESPLANE0];
+        origBytesPlane47 = bdb[KHR_DF_WORD_BYTESPLANE4];
+        bdb[KHR_DF_WORD_BYTESPLANE0] = 0U;
+        bdb[KHR_DF_WORD_BYTESPLANE1] = 0U;
+        reconstructDFDBytesPlanesFromSamples(dfd);
+        EXPECT_EQ(origBytesPlane03, bdb[KHR_DF_WORD_BYTESPLANE0]);
+        EXPECT_EQ(origBytesPlane47, bdb[KHR_DF_WORD_BYTESPLANE4]);
         free(dfd);
+    }
+
+    // No need to test reconstruction for UASTC as, colorModel aside, the DFD
+    // is identical to that for VK_FORMAT_ASTC_4x4_BLOCK_UNORM which has been
+    // tested above.
+
+    // Make ETC1S DFDs and test reconstruction.
+    for (uint32_t sampleCount = 1; sampleCount < 3; sampleCount++) {
+        uint32_t bdbSize = KHR_DF_WORD_SAMPLESTART
+                           + sampleCount * KHR_DF_WORD_SAMPLEWORDS;
+        bdbSize *= sizeof(uint32_t);
+        uint32_t dfdSize = bdbSize + 1 * sizeof(uint32_t);
+        dfd = new uint32_t[dfdSize];
+        bdb = dfd + 1;
+
+        KHR_DFDSETVAL(bdb, VENDORID, KHR_DF_VENDORID_KHRONOS);
+        KHR_DFDSETVAL(bdb, DESCRIPTORTYPE, KHR_DF_KHR_DESCRIPTORTYPE_BASICFORMAT);
+        KHR_DFDSETVAL(bdb, VERSIONNUMBER, KHR_DF_VERSIONNUMBER_LATEST);
+        KHR_DFDSETVAL(bdb, DESCRIPTORBLOCKSIZE, bdbSize);
+        KHR_DFDSETVAL(bdb, MODEL, KHR_DF_MODEL_ETC1S);
+        KHR_DFDSETVAL(bdb, PRIMARIES, KHR_DF_PRIMARIES_BT709);
+        KHR_DFDSETVAL(bdb, TRANSFER, KHR_DF_TRANSFER_SRGB);
+        KHR_DFDSETVAL(bdb, FLAGS, 0);
+
+        bdb[KHR_DF_WORD_TEXELBLOCKDIMENSION0] =
+                                3 | (3 << KHR_DF_SHIFT_TEXELBLOCKDIMENSION1);
+        bdb[KHR_DF_WORD_BYTESPLANE0] = 0; /* bytesPlane3..0 = 0 */
+        //KHR_DFDSETVAL(nbdb, BYTESPLANE0, 8);
+        //if (sampleCoount == 2)
+        //    KHR_DFDSETVAL(nbdb, BYTESPLANE1, 8);
+        bdb[KHR_DF_WORD_BYTESPLANE4] = 0; /* bytesPlane7..5 = 0 */
+
+        for (uint32_t sample = 0; sample < sampleCount; sample++) {
+            uint16_t channelId, bitOffset;
+            if (sample == 0) {
+                bitOffset = 0;
+                channelId = KHR_DF_CHANNEL_ETC1S_RGB;
+            } else {
+                bitOffset = 64;
+                channelId = KHR_DF_CHANNEL_ETC1S_AAA;
+            }
+            KHR_DFDSETSVAL(bdb, sample, CHANNELID, channelId);
+            KHR_DFDSETSVAL(bdb, sample, QUALIFIERS, 0);
+            KHR_DFDSETSVAL(bdb, sample, SAMPLEPOSITION_ALL, 0);
+            KHR_DFDSETSVAL(bdb, sample, BITOFFSET, bitOffset);
+            KHR_DFDSETSVAL(bdb, sample, BITLENGTH, 63);
+            KHR_DFDSETSVAL(bdb, sample, SAMPLELOWER, 0);
+            KHR_DFDSETSVAL(bdb, sample, SAMPLEUPPER, UINT32_MAX);
+        }
+        reconstructDFDBytesPlanesFromSamples(dfd);
+        EXPECT_EQ(8U, KHR_DFDVAL(bdb, BYTESPLANE0));
+        if (sampleCount == 2)
+            EXPECT_EQ(8U, KHR_DFDVAL(bdb, BYTESPLANE1));
+        else
+            EXPECT_EQ(0U, KHR_DFDVAL(bdb, BYTESPLANE1));
+        EXPECT_EQ(0U, KHR_DFDVAL(bdb, BYTESPLANE2));
+        EXPECT_EQ(0U, KHR_DFDVAL(bdb, BYTESPLANE3));
+        EXPECT_EQ(0U, bdb[KHR_DF_WORD_BYTESPLANE4]);
+
+        delete[] dfd;
     }
 }
 
@@ -1066,5 +1134,47 @@ TEST(BadVulkanAllocExceptionTest, PoolFragmented) {
         EXPECT_EQ(strcmp(e.what(), "Pool fragmented when allocating for fragmented pool memory test."), 0);
     }
 }
+
+// See ktxint.h for explanation and setting of _KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR
+// and STRNSTR.
+#if _KTX_TEST_OUR_STRNSTR_ON_PLATFORM_WITH_STRNSTR \
+    || defined(_WIN32) || defined(linux) || defined(__linux) || defined(__linux__) || defined(__EMSCRIPTEN__)//////////////////////////////
+// Test homegrown strnstr
+//////////////////////////////
+
+extern "C" {
+    char*  STRNSTR(const char *haystack, const char *needle, size_t len);
+}
+
+const char* haystack = "abcdefabc";
+
+TEST(strnstr, ZeroLengthNeedle) {
+    EXPECT_EQ( STRNSTR(haystack, "", sizeof(haystack)), haystack);
+}
+
+TEST(strnstr, MatchAtStart) {
+    EXPECT_EQ( STRNSTR(haystack, "abc", sizeof(haystack)), haystack);
+}
+
+TEST(strnstr, MatchAtEnd) {
+    EXPECT_EQ( STRNSTR(haystack, "def", sizeof(haystack)), &haystack[3]);
+}
+
+TEST(strnstr, MatchInMiddle) {
+    EXPECT_EQ( STRNSTR(haystack, "fa", sizeof(haystack)), &haystack[5]);
+}
+
+TEST(strnstr, NoMatchBeforeGivenLength) {
+    EXPECT_EQ( STRNSTR(haystack, "cde", 2), nullptr);
+}
+
+TEST(strnstr, NeedleMatchesHaystackButLonger) {
+    EXPECT_EQ( STRNSTR(haystack, "abcdefg", sizeof(haystack)), nullptr);
+}
+
+TEST(strnstr, NoMatch) {
+    EXPECT_EQ( STRNSTR(haystack, "foo", sizeof(haystack)), nullptr);
+}
+#endif
 
 }  // namespace

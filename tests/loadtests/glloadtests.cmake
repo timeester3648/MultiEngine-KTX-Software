@@ -121,9 +121,9 @@ function( create_gl_target target version sources common_resources test_images
             "SHELL:--source-map-base ./"
             ${preloads}
             "SHELL:--exclude-file '${PROJECT_SOURCE_DIR}/tests/testimages/cubemap*'"
+            "SHELL:--use-port=sdl3"
             "SHELL:-s ALLOW_MEMORY_GROWTH=1"
             "SHELL:-s DISABLE_EXCEPTION_CATCHING=0"
-            "SHELL:-s USE_SDL=2"
             "SHELL:-s USE_WEBGL2=1"
         )
     elseif(WIN32)
@@ -229,14 +229,14 @@ function( create_gl_target target version sources common_resources test_images
                 INSTALL_RPATH "@executable_path/../Frameworks"
             )
 
-            if(NOT KTX_FEATURE_STATIC_LIBRARY)
+            if(BUILD_SHARED_LIBS)
               add_custom_command( TARGET ${target} POST_BUILD
                   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_FILE_NAME:ktx>"
                   COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:ktx> "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Frameworks/$<TARGET_SONAME_FILE_NAME:ktx>"
                   COMMENT "Copy KTX library to build destination"
               )
             endif()
-            # Re. SDL2 & assimp: no copy required.: vcpkg libs are static or else
+            # Re. SDL3 & assimp: no copy required.: vcpkg libs are static or else
             # vcpkg arranges copy. Brew libs cannot be bundled.
 
             # Specify destination for cmake --install.
@@ -446,3 +446,4 @@ if( (APPLE AND NOT IOS) OR LINUX OR WIN32 )
     # OpenGL 3.3
     create_gl_target( gl3loadtests "GL3" "${GL3_SOURCES}" "${LOAD_TEST_COMMON_RESOURCE_FILES}" "${GL3_TEST_IMAGES}" SDL_GL_CONTEXT_PROFILE_CORE 3 3 OFF YES)
 endif()
+
